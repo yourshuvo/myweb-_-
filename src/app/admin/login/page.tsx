@@ -9,11 +9,12 @@ import { missingConfiguration } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Owner sign in", robots: { index: false, follow: false } };
-
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reset?: string }> }) {
   if (await getAdminUser()) redirect("/admin");
   const { reset } = await searchParams;
-  const missing = missingConfiguration().filter((name) => name !== "HACKCLUB_CDN_API_KEY");
+  const missing = missingConfiguration().filter(
+    (name) => name !== "HACKCLUB_CDN_API_KEY" && name !== "TMDB_API_KEY",
+  );
   return (
     <AdminAuthWindow icon="user-computer" title="Owner sign in">
       <div><p>Registration is disabled. Only the email configured as <code>ADMIN_EMAIL</code> can enter.</p></div>
