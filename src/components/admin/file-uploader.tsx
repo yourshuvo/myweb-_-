@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { W98Icon } from "@/components/desktop/w98-icon";
+import { readJsonBody } from "@/lib/api-response";
 import { imageCompressionOptions } from "@/lib/image";
 
 type UploadStatus = "idle" | "compressing" | "uploading" | "done" | "error";
@@ -43,8 +44,8 @@ export function FileUploader() {
       bitmap.close();
       setStatus("uploading"); setMessage("Sending the optimized copy to Hack Club CDN…");
       const response = await fetch("/api/admin/media", { method: "POST", body: formData });
-      const result = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(result.error || "Upload failed.");
+      const result = (await readJsonBody<{ error?: string }>(response)) ?? {};
+      if (!response.ok) throw new Error(result.error || `Upload failed (status ${response.status}).`);
       setStatus("done"); setMessage("Uploaded. Refreshing the media library…");
       window.location.reload();
     } catch (error) {
