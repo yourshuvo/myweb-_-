@@ -23,10 +23,10 @@ describe("content validation", () => {
     expect(profileSchema.safeParse({ ...base, spotifyPlaylistUrl: "https://open.spotify.com/album/123" }).success).toBe(false);
     expect(profileSchema.safeParse({ ...base, spotifyPlaylistUrl: "https://evil.example/playlist/123" }).success).toBe(false);
   });
-  it("requires a personal note before a movie is published", () => {
+  it("allows a movie to be published without a personal note", () => {
     const base = { id: "", tmdbId: "123", personalNote: "", watchedAt: "", status: "draft" };
     expect(movieRecommendationSchema.safeParse(base).success).toBe(true);
-    expect(movieRecommendationSchema.safeParse({ ...base, status: "published" }).success).toBe(false);
+    expect(movieRecommendationSchema.safeParse({ ...base, status: "published" }).success).toBe(true);
     expect(movieRecommendationSchema.safeParse({ ...base, status: "published", personalNote: "A quiet film I kept thinking about." }).success).toBe(true);
   });
   it("validates TMDB search length", () => {

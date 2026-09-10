@@ -135,19 +135,13 @@ export const tmdbSearchSchema = z.object({
   query: z.string().trim().min(2, "Enter at least two characters.").max(100, "Keep the search under 100 characters."),
 });
 
-export const movieRecommendationSchema = z
-  .object({
-    id: z.union([z.literal(""), z.uuid("Invalid recommendation ID.")]),
-    tmdbId: z.coerce.number().int().positive("Choose a movie from the TMDB results."),
-    personalNote: z.string().trim().max(1500, "Keep your recommendation under 1,500 characters."),
-    watchedAt: z.union([z.literal(""), z.iso.date("Use a valid watched date.")]),
-    status: z.enum(["draft", "published"]),
-  })
-  .superRefine((movie, context) => {
-    if (movie.status === "published" && !movie.personalNote) {
-      context.addIssue({ code: "custom", path: ["personalNote"], message: "Add why you recommend this movie before publishing." });
-    }
-  });
+export const movieRecommendationSchema = z.object({
+  id: z.union([z.literal(""), z.uuid("Invalid recommendation ID.")]),
+  tmdbId: z.coerce.number().int().positive("Choose a movie from the TMDB results."),
+  personalNote: z.string().trim().max(1500, "Keep your recommendation under 1,500 characters."),
+  watchedAt: z.union([z.literal(""), z.iso.date("Use a valid watched date.")]),
+  status: z.enum(["draft", "published"]),
+});
 
 export const movieRecommendationIdSchema = z.uuid("Invalid recommendation ID.");
 

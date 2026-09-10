@@ -62,7 +62,7 @@ export function MovieLibrary({ movies }: { movies: MovieLibraryItem[] }) {
             <p className="eyebrow">MY MOVIE SUGGESTION</p>
             <h2>{selected.title}</h2>
             <div className="movie-preview__facts"><span>{movieReleaseYear(selected.releaseDate)}</span>{selected.runtimeMinutes && <span>{selected.runtimeMinutes} minutes</span>}{selected.genres.map((item) => <span key={item}>{item}</span>)}</div>
-            <section className="movie-personal-note"><h3>Why I recommend it</h3><p>{selected.personalNote}</p>{formatCalendarDate(selected.watchedAt) && <small>Watched {formatCalendarDate(selected.watchedAt)}</small>}</section>
+            {(selected.personalNote || formatCalendarDate(selected.watchedAt)) && <section className="movie-personal-note">{selected.personalNote && <><h3>Why I recommend it</h3><p>{selected.personalNote}</p></>}{formatCalendarDate(selected.watchedAt) && <small>Watched {formatCalendarDate(selected.watchedAt)}</small>}</section>}
             <section className="movie-synopsis"><h3>About the movie</h3><p>{selected.overview || "No synopsis is available from TMDB."}</p></section>
             <a className="retro-button movie-tmdb-link" href={`https://www.themoviedb.org/movie/${selected.tmdbId}`} target="_blank" rel="noreferrer">View on TMDB</a>
           </div>
