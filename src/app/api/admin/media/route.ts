@@ -1,14 +1,15 @@
-import sharp from "sharp";
 import { z } from "zod";
 import { revalidateTag } from "next/cache";
 import { mediaAssets } from "@/db/schema";
 import { requireDb } from "@/db";
 import { requireAdmin } from "@/lib/auth/server";
 import { getServerEnv } from "@/lib/env";
+import { readImageDimensions } from "@/lib/image-dimensions";
 
 export const runtime = "nodejs";
 
 const MAX_UPLOAD_BYTES = Math.floor(3.9 * 1024 * 1024);
+const MAX_DIMENSION = 2400;
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const cdnResponseSchema = z.object({
   id: z.string().min(1),
@@ -46,13 +47,11 @@ export async function POST(request: Request) {
     if (file.size > MAX_UPLOAD_BYTES) return privateJson({ error: "The optimized image must be below 3.9 MB." }, { status: 413 });
 
     const bytes = Buffer.from(await file.arrayBuffer());
-    let metadata: { width?: number; height?: number };
-    try {
-      metadata = await sharp(bytes).metadata();
-    } catch {
+    const dimensions = readImageDimensions(bytes);
+    if (!dimensions) {
       return privateJson({ error: "The uploaded file is not a readable image." }, { status: 422 });
     }
-    if (!metadata.width || !metadata.height || metadata.width > 2400 || metadata.height > 2400) {
+    if (dimensions.width > MAX_DIMENSION || dimensions.height > MAX_DIMENSION) {
       return privateJson({ error: "The optimized image dimensions must be between 1 and 2400 pixels." }, { status: 422 });
     }
 
@@ -89,8 +88,8 @@ export async function POST(request: Request) {
         filename: parsed.data.filename,
         mimeType: parsed.data.content_type,
         byteSize: parsed.data.size,
-        width: metadata.width,
-        height: metadata.height,
+        width: dimensions.width,
+        height: dimensions.height,
         altText,
         caption,
         takenDate,

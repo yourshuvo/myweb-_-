@@ -5,7 +5,7 @@ import { useActionState, useEffect, useId, useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { saveProfileAction } from "@/app/admin/actions";
 import type { MediaAsset } from "@/db/schema";
-import { readJsonBody } from "@/lib/api-response";
+import { readResponseBody, serverErrorMessage } from "@/lib/api-response";
 import type { PublicProfile } from "@/lib/data";
 import { imageCompressionOptions } from "@/lib/image";
 
@@ -83,10 +83,10 @@ function ProfileImagePicker({
       setStatus("uploading");
       setMessage("Uploading the optimized copy to Hack Club CDN...");
       const response = await fetch("/api/admin/media", { method: "POST", body });
-      const result = (await readJsonBody<{ asset?: ProfileImageAsset; error?: string }>(response)) ?? {};
-      if (!response.ok || !result.asset) throw new Error(result.error || `Upload failed (status ${response.status}).`);
+      const { json, text } = await readResponseBody<{ asset?: ProfileImageAsset; error?: string }>(response);
+      if (!response.ok || !json?.asset) throw new Error(serverErrorMessage(json, text) || `Upload failed (status ${response.status}).`);
 
-      const asset = result.asset;
+      const asset = json.asset;
       setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)]);
       setAvatarMediaId(asset.id);
       setPreviewUrl(asset.url);
