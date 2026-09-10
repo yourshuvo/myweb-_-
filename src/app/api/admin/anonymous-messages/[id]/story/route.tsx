@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const fontPromise = readFile(join(process.cwd(), "src", "app", "fonts", "W95FA.otf"));
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -71,7 +71,7 @@ export async function GET(
           </div>
           <div style={{ margin: "17px 17px 0", height: 78, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 25 }}>
             <span>Private message</span>
-            <span>{new URL(siteUrl()).hostname}/ask</span>
+            <span>{(request.headers.get("x-forwarded-host") || request.headers.get("host") || new URL(siteUrl()).host).replace(/:\d+$/, "")}/ask</span>
           </div>
         </div>
       </div>

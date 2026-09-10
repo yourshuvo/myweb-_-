@@ -36,10 +36,17 @@ import { formatDate } from "@/lib/markdown";
 
 export function AskLinkTools({ askUrl }: { askUrl: string }) {
   const [status, setStatus] = useState("");
+  const [effectiveUrl, setEffectiveUrl] = useState(askUrl);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.origin) {
+      setEffectiveUrl(`${window.location.origin}/ask`);
+    }
+  }, []);
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(askUrl);
+      await navigator.clipboard.writeText(effectiveUrl);
       setStatus("Link copied.");
     } catch {
       setStatus("Copy failed. Select the URL and copy it manually.");
@@ -52,7 +59,7 @@ export function AskLinkTools({ askUrl }: { askUrl: string }) {
       return;
     }
     try {
-      await navigator.share({ title: "Send me an anonymous message", url: askUrl });
+      await navigator.share({ title: "Send me an anonymous message", url: effectiveUrl });
       setStatus("Share sheet opened.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -65,7 +72,7 @@ export function AskLinkTools({ askUrl }: { askUrl: string }) {
       <div className="admin-panel__title" id="anonymous-share-title">Share your private inbox</div>
       <p>Post this link with Instagram&apos;s Link sticker. Instagram does not allow this site to add the sticker or publish a Story automatically.</p>
       <div className="anonymous-share-link">
-        <input aria-label="Anonymous message URL" readOnly value={askUrl} onFocus={(event) => event.currentTarget.select()} />
+        <input aria-label="Anonymous message URL" readOnly value={effectiveUrl} onFocus={(event) => event.currentTarget.select()} />
         <button className="retro-button" type="button" onClick={copyLink}>Copy Link</button>
         <button className="retro-button" type="button" onClick={shareLink}>Share Link</button>
       </div>
