@@ -57,7 +57,7 @@ export default async function UpdatePage({ params }: Props) {
             <h1>{post.title}</h1>
             {post.excerpt && <p>{post.excerpt}</p>}
           </header>
-          {post.coverUrl && <figure className="post-article__cover"><Image src={post.coverUrl} alt={post.coverAltText || `Cover image for ${post.title}`} width={1200} height={800} sizes="(max-width: 800px) 100vw, 760px" priority /></figure>}
+          {post.coverUrl && <figure className="post-article__cover"><Image src={post.coverUrl} alt={post.coverAltText || `Cover image for ${post.title}`} width={1200} height={800} sizes="(max-width: 800px) 100vw, 760px" data-photo-lightbox={post.coverUrl} data-photo-lightbox-alt={post.coverAltText || `Cover image for ${post.title}`} priority /></figure>}
           <MarkdownRenderer markdown={post.body} />
           <footer className="post-article__footer"><Link href="/updates">Back to all updates</Link><span>{profile.displayName || profile.siteTitle}</span></footer>
         </article>

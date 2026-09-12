@@ -4,7 +4,7 @@ import { W98Icon } from "@/components/desktop/w98-icon";
 import { getAdminAnonymousMessages } from "@/lib/anonymous-messages";
 import { getAdminAlbums, getAdminMedia, getAdminMovieRecommendations, getAdminPosts, getPublicProfile } from "@/lib/data";
 import { getAdminGuestbookEntries, getVisitorCount } from "@/lib/guestbook-data";
-import { getServerEnv, hasAuthConfig, hasGuestbookConfig, hasTmdbConfig, hasVisitorTrackingConfig } from "@/lib/env";
+import { getServerEnv, hasAuthConfig, hasTmdbConfig, hasVisitorTrackingConfig } from "@/lib/env";
 import { formatDate } from "@/lib/markdown";
 
 type ActivityItem = { id: string; label: string; detail: string; date: Date; href: string };
@@ -39,7 +39,6 @@ export default async function AdminPage() {
     { label: "Neon Auth", configured: hasAuthConfig() },
     { label: "Hack Club uploads", configured: Boolean(getServerEnv("HACKCLUB_CDN_API_KEY")) },
     { label: "TMDB movie data", configured: hasTmdbConfig() },
-    { label: "Guestbook anti-spam", configured: hasGuestbookConfig() },
     { label: "Visitor cookie", configured: hasVisitorTrackingConfig() },
   ];
   const missingChecks = checks.filter((check) => !check.configured);
@@ -77,7 +76,7 @@ export default async function AdminPage() {
         </section>
         <section className="admin-panel">
           <div className="admin-panel__title">Service check</div>
-          {missingChecks.length ? <div className="service-list">{checks.map((check) => <div key={check.label}><span className={check.configured ? "is-ready" : "is-missing"}>{check.configured ? "Ready" : "Needs setup"}</span><strong>{check.label}</strong></div>)}</div> : <div className="dashboard-empty"><strong>All core services are ready</strong><p>Authentication, uploads, movie data, guestbook protection, and visitor counting are configured.</p></div>}
+          {missingChecks.length ? <div className="service-list">{checks.map((check) => <div key={check.label}><span className={check.configured ? "is-ready" : "is-missing"}>{check.configured ? "Ready" : "Needs setup"}</span><strong>{check.label}</strong></div>)}</div> : <div className="dashboard-empty"><strong>All core services are ready</strong><p>Authentication, uploads, movie data, and visitor counting are configured.</p></div>}
         </section>
       </div>
     </div>

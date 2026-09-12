@@ -4,31 +4,20 @@ import { getTableColumns } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { anonymousMessageRateLimits, anonymousMessages } from "@/db/schema";
 import { anonymousMessageTransition } from "@/lib/anonymous-message-model";
-import { ANONYMOUS_MESSAGE_ACTION, acceptsTurnstileResult, GUESTBOOK_ACTION } from "@/lib/guestbook-security";
 import { anonymousStoryFilename, STORY_IMAGE_HEIGHT, STORY_IMAGE_WIDTH, storyFontSizeForLength } from "@/lib/story-image";
 import { anonymousMessageSchema } from "@/lib/validation";
 
 describe("anonymous message validation", () => {
   it("keeps only trimmed plain text", () => {
-    const parsed = anonymousMessageSchema.parse({ message: "  hello privately  ", company: "", turnstileToken: "token" });
+    const parsed = anonymousMessageSchema.parse({ message: "  hello privately  ", company: "" });
     expect(parsed.message).toBe("hello privately");
     expect(renderToStaticMarkup(createElement("p", null, "<b>not html</b>"))).toBe("<p>&lt;b&gt;not html&lt;/b&gt;</p>");
   });
 
   it("rejects empty, oversized, and honeypot submissions", () => {
-    expect(anonymousMessageSchema.safeParse({ message: "", company: "", turnstileToken: "token" }).success).toBe(false);
-    expect(anonymousMessageSchema.safeParse({ message: "x".repeat(501), company: "", turnstileToken: "token" }).success).toBe(false);
-    expect(anonymousMessageSchema.safeParse({ message: "hello", company: "bot", turnstileToken: "token" }).success).toBe(false);
-  });
-});
-
-describe("anonymous Turnstile separation", () => {
-  it("accepts only the anonymous-message action for the expected hostname", () => {
-    const result = { success: true, action: ANONYMOUS_MESSAGE_ACTION, hostname: "shuv0.space" };
-    expect(acceptsTurnstileResult(result, "shuv0.space", ANONYMOUS_MESSAGE_ACTION)).toBe(true);
-    expect(acceptsTurnstileResult(result, "shuv0.space", GUESTBOOK_ACTION)).toBe(false);
-    expect(acceptsTurnstileResult({ ...result, hostname: "example.com" }, "shuv0.space", ANONYMOUS_MESSAGE_ACTION)).toBe(false);
-    expect(acceptsTurnstileResult({ ...result, success: false }, "shuv0.space", ANONYMOUS_MESSAGE_ACTION)).toBe(false);
+    expect(anonymousMessageSchema.safeParse({ message: "", company: "" }).success).toBe(false);
+    expect(anonymousMessageSchema.safeParse({ message: "x".repeat(501), company: "" }).success).toBe(false);
+    expect(anonymousMessageSchema.safeParse({ message: "hello", company: "bot" }).success).toBe(false);
   });
 });
 

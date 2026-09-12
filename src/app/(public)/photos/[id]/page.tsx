@@ -58,6 +58,8 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
               width={photo.width || 1200}
               height={photo.height || 900}
               sizes="(max-width: 760px) 100vw, 940px"
+              data-photo-lightbox={photo.url}
+              data-photo-lightbox-alt={photo.altText}
               priority
             />
           </div>

@@ -16,7 +16,7 @@ export default async function AboutPage() {
     <PageShell profile={profile} title="About me - Properties">
       <div className="about-layout">
         <aside className="about-card">
-          <div className="about-avatar">{profile.avatarUrl ? <Image src={profile.avatarUrl} alt={`${profile.displayName} portrait`} width={500} height={500} sizes="250px" /> : <span aria-hidden="true">?</span>}</div>
+          <div className="about-avatar">{profile.avatarUrl ? <Image src={profile.avatarUrl} alt={`${profile.displayName} portrait`} width={500} height={500} sizes="250px" data-photo-lightbox={profile.avatarUrl} data-photo-lightbox-alt={`${profile.displayName} portrait`} /> : <span aria-hidden="true">?</span>}</div>
           <h1>{profile.displayName || "Profile pending"}</h1><p>{profile.siteTitle}</p>
         </aside>
         <div className="about-copy"><p className="eyebrow">README.TXT</p><h2>A little about me</h2>{profile.biography ? profile.biography.split("\n").filter(Boolean).map((paragraph) => <p key={paragraph}>{paragraph}</p>) : <p>The owner has not added a biography yet. This page will stay honest and quiet until they do.</p>}

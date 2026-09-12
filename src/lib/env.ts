@@ -5,7 +5,6 @@ const serverEnvNames = [
   "ADMIN_EMAIL",
   "HACKCLUB_CDN_API_KEY",
   "TMDB_API_KEY",
-  "TURNSTILE_SECRET_KEY",
   "GUESTBOOK_COOKIE_SECRET",
 ] as const;
 
@@ -27,14 +26,6 @@ export function hasAuthConfig() {
 export function hasVisitorTrackingConfig() {
   const cookieSecret = getServerEnv("GUESTBOOK_COOKIE_SECRET");
   return Boolean(hasDatabaseConfig() && cookieSecret && cookieSecret.length >= 32);
-}
-
-export function hasGuestbookConfig() {
-  return Boolean(
-    hasVisitorTrackingConfig() &&
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() &&
-      getServerEnv("TURNSTILE_SECRET_KEY"),
-  );
 }
 
 export function hasTmdbConfig() {

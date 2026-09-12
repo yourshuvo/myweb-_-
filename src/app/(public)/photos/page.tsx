@@ -23,7 +23,7 @@ export default async function PhotosPage() {
         <div className="photo-grid">
           {photos.map((photo) => (
             <figure key={photo.id}>
-              <Link className="photo-grid__image" href={`/photos/${photo.id}`} aria-label={`Open ${photo.caption || photo.filename}`}><Image src={photo.url} alt={photo.altText} width={photo.width || 900} height={photo.height || 675} sizes="(max-width: 760px) 100vw, 45vw" /></Link>
+              <Link className="photo-grid__image" href={`/photos/${photo.id}`} aria-label={`Open ${photo.caption || photo.filename}`} data-photo-lightbox={photo.url} data-photo-lightbox-alt={photo.altText}><Image src={photo.url} alt={photo.altText} width={photo.width || 900} height={photo.height || 675} sizes="(max-width: 760px) 100vw, 45vw" /></Link>
               <figcaption><strong>{photo.caption || photo.filename}</strong><time>{formatDate(photo.takenDate || photo.createdAt)}</time></figcaption>
             </figure>
           ))}

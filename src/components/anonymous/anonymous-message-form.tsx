@@ -5,14 +5,13 @@ import {
   submitAnonymousMessageAction,
   type AnonymousMessageFormState,
 } from "@/app/(public)/ask/actions";
-import { TurnstileWidget } from "@/components/guestbook/turnstile-widget";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 const initialState: AnonymousMessageFormState = { status: "idle", message: "" };
 
-export function AnonymousMessageForm({ enabled, siteKey }: { enabled: boolean; siteKey?: string }) {
+export function AnonymousMessageForm({ enabled }: { enabled: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState(submitAnonymousMessageAction, initialState);
   const [messageInput, setMessageInput] = useState({ attemptId: "initial", length: 0 });
@@ -25,10 +24,10 @@ export function AnonymousMessageForm({ enabled, siteKey }: { enabled: boolean; s
     }
   }, [state.attemptId, state.status]);
 
-  if (!enabled || !siteKey) {
+  if (!enabled) {
     return (
       <Alert className="retro-alert">
-        <AlertDescription>Private messages will open after the database and anti-spam keys are connected.</AlertDescription>
+        <AlertDescription>Private messages will open after the database and visitor cookie are connected.</AlertDescription>
       </Alert>
     );
   }
@@ -57,17 +56,6 @@ export function AnonymousMessageForm({ enabled, siteKey }: { enabled: boolean; s
           <span>Plain text only</span>
           <span aria-live="polite" id="anonymous-message-count">{length} of 500 characters</span>
         </div>
-      </div>
-      <div className="ask-verification">
-        <div className="ask-verification__copy">
-          <strong>Spam protection</strong>
-          <span>Cloudflare may ask for a quick check before sending.</span>
-        </div>
-        <TurnstileWidget
-          key={state.attemptId || "initial"}
-          siteKey={siteKey}
-          action="anonymous-message"
-        />
       </div>
       {state.message && (
         <Alert

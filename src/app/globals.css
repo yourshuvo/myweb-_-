@@ -211,10 +211,6 @@
 .win98-desktop .anonymous-message-form textarea::placeholder { color: #666; opacity: 1; }
 .win98-desktop .anonymous-message-form textarea:focus-visible { outline: 2px solid #000080; outline-offset: 1px; }
 .win98-desktop .ask-character-status { display: flex; min-height: 21px; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 5px; color: #333; background: #d4d0c8; border: 1px solid; border-color: #808080 #fff #fff #808080; font-size: 10px; }
-.win98-desktop .ask-verification { display: grid; gap: 7px; padding: 8px; background: #e7e7e7; border: 2px solid; border-color: #808080 #fff #fff #808080; }
-.win98-desktop .ask-verification__copy { display: grid; gap: 2px; font-size: 10px; line-height: 1.4; }
-.win98-desktop .ask-verification__copy strong { font-size: 11px; }
-.win98-desktop .ask-verification .turnstile-field { gap: 3px; }
 .win98-desktop .ask-submit-row { display: flex; align-items: center; gap: 9px; padding-top: 1px; }
 .win98-desktop .ask-submit-row .retro-button { min-height: 30px; padding: 3px 13px; font-weight: 700; }
 .win98-desktop .ask-submit-row > span { color: #333; font-size: 10px; }
@@ -222,6 +218,8 @@
 .win98-desktop .guestbook-private-link { margin: 8px 0 0; }
 
 @media (max-width: 767px) {
+  [data-photo-lightbox] { cursor: zoom-in; }
+
   .win98-admin-desktop { position: relative; min-height: 100dvh; overflow: visible; padding-bottom: 28px; background: #c0c0c0; }
   .admin-desktop-shortcuts { display: none; }
   .admin-route-window { position: relative; inset: auto; display: block; min-height: calc(100dvh - 28px); padding: 4px 4px 34px; }
@@ -494,9 +492,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .guestbook-field label { font-weight: 700; }
 .guestbook-field input, .guestbook-field textarea { width: 100%; padding: 8px 9px; color: #000; background: white; border: 2px solid; border-color: #555 white white #555; border-radius: 0; box-shadow: none; }
 .guestbook-field textarea { min-height: 142px; resize: vertical; line-height: 1.45; }
-.guestbook-field p, .turnstile-field > p { margin: 0; color: #4c4c4c; font-size: 11px; line-height: 1.4; }
-.turnstile-field { display: grid; min-width: 0; gap: 6px; }
-.turnstile-container { min-height: 65px; max-width: 100%; overflow: hidden; }
+.guestbook-field p { margin: 0; color: #4c4c4c; font-size: 11px; line-height: 1.4; }
 .retro-alert { padding: 10px 12px; color: #2b2800; background: #fffbd1; border: 2px solid; border-color: #fff #8f8900 #8f8900 #fff; border-radius: 0; }
 .retro-alert[data-variant="destructive"] { color: #72131d; background: #ffe9eb; border-color: #ffb2bb #7c101d #7c101d #ffb2bb; }
 .guestbook-submit { justify-self: start; }
@@ -580,6 +576,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .about-card { text-align: center; }
 .about-avatar { display: grid; aspect-ratio: 1; place-items: center; overflow: hidden; color: #808080; background: #e6e6e6; border: 8px solid white; outline: 1px solid #777; font-family: Georgia, serif; font-size: 70px; }
 .about-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.photo-lightbox { position: fixed; inset: 0; z-index: 240; display: grid; place-items: center; padding: 16px; background: rgb(0 0 0 / 85%); }
+.photo-lightbox__close { position: absolute; top: 12px; right: 12px; display: grid; width: 34px; height: 34px; place-items: center; padding: 0; color: #000; background: #d4d0c8; border: 2px solid; border-color: #fff #404040 #404040 #fff; font: 700 16px/1 Verdana, Arial, sans-serif; cursor: pointer; }
+.photo-lightbox__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.photo-lightbox__frame { display: grid; gap: 8px; max-width: 100%; max-height: 100%; margin: 0; padding: 5px; background: #d4d0c8; border: 2px solid; border-color: #fff #404040 #404040 #fff; box-shadow: 4px 4px 0 rgb(0 0 0 / 40%); }
+.photo-lightbox__frame img { display: block; width: auto; max-width: 100%; max-height: calc(100vh - 130px); margin: 0 auto; object-fit: contain; background: #000; }
+.photo-lightbox__frame figcaption { display: grid; gap: 7px; color: #000; font: 11px/1.45 Verdana, Arial, sans-serif; }
+.photo-lightbox__frame figcaption span { overflow-wrap: anywhere; }
+.photo-lightbox__frame figcaption a { justify-self: start; color: #000080; }
 .about-card h1 { margin: 20px 0 4px; font-family: Georgia, serif; font-size: 28px; font-weight: 400; }
 .about-card p { margin: 0; color: #666; }
 .about-copy h2 { margin: 0 0 22px; font-family: Georgia, serif; font-size: clamp(36px, 5vw, 58px); font-weight: 400; line-height: 1; }

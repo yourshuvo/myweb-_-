@@ -1,9 +1,8 @@
 "use server";
 
 import { createAnonymousMessage, reserveAnonymousMessageSubmission } from "@/lib/anonymous-messages";
-import { hasGuestbookConfig } from "@/lib/env";
+import { hasVisitorTrackingConfig } from "@/lib/env";
 import { incrementVisitorCount } from "@/lib/guestbook-data";
-import { verifyAnonymousMessageTurnstile } from "@/lib/turnstile";
 import { anonymousMessageSchema } from "@/lib/validation";
 import { getOrCreateVisitorIdentity } from "@/lib/visitor-cookie";
 
@@ -23,21 +22,16 @@ export async function submitAnonymousMessageAction(
     attemptId: crypto.randomUUID(),
   });
 
-  if (!hasGuestbookConfig()) {
+  if (!hasVisitorTrackingConfig()) {
     return result("error", "Anonymous messages are temporarily unavailable.");
   }
 
   const parsed = anonymousMessageSchema.safeParse({
     message: String(formData.get("message") || ""),
     company: String(formData.get("company") || ""),
-    turnstileToken: String(formData.get("cf-turnstile-response") || ""),
   });
   if (!parsed.success) {
     return result("error", parsed.error.issues[0]?.message || "Check the message field.");
-  }
-
-  if (!(await verifyAnonymousMessageTurnstile(parsed.data.turnstileToken))) {
-    return result("error", "The anti-spam check expired or failed. Please try again.");
   }
 
   try {

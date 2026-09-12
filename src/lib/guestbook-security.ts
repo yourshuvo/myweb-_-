@@ -2,8 +2,6 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 
 export const VISITOR_COOKIE_NAME = "retro_visitor";
 export const VISITOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-export const GUESTBOOK_ACTION = "guestbook";
-export const ANONYMOUS_MESSAGE_ACTION = "anonymous-message";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -31,19 +29,4 @@ export function verifyVisitorCookie(value: string | undefined, secret: string) {
 
 export function hashVisitorId(visitorId: string, secret: string) {
   return createHmac("sha256", secret).update(`rate-limit:${visitorId}`).digest("hex");
-}
-
-export type TurnstileResult = {
-  success?: boolean;
-  hostname?: string;
-  action?: string;
-  "error-codes"?: string[];
-};
-
-export function acceptsTurnstileResult(
-  result: TurnstileResult,
-  expectedHostname: string,
-  expectedAction = GUESTBOOK_ACTION,
-) {
-  return result.success === true && result.action === expectedAction && result.hostname === expectedHostname;
 }

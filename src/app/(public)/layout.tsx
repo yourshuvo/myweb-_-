@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import { PublicDesktopLayout } from "@/components/desktop/public-desktop-layout";
+import { PhotoLightbox } from "@/components/retro/photo-lightbox";
 import { getPublicProfile } from "@/lib/data";
 
 const w95fa = localFont({
@@ -13,6 +14,7 @@ export default async function PublicLayout({ children }: { children: React.React
   return (
     <div className={w95fa.variable}>
       <PublicDesktopLayout siteTitle={profile.siteTitle}>{children}</PublicDesktopLayout>
+      <PhotoLightbox />
     </div>
   );
 }

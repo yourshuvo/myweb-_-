@@ -53,7 +53,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
         <div className="album-gallery">
           {album.items.map((photo, index) => (
             <figure key={photo.id}>
-              <Link className="album-gallery__image" href={`/photos/${photo.id}`} aria-label={`Open ${photo.displayCaption}`}>
+              <Link className="album-gallery__image" href={`/photos/${photo.id}`} aria-label={`Open ${photo.displayCaption}`} data-photo-lightbox={photo.url} data-photo-lightbox-alt={photo.altText}>
                 <Image
                   src={photo.url}
                   alt={photo.altText}

@@ -6,11 +6,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TurnstileWidget } from "@/components/guestbook/turnstile-widget";
 
 const initialState: GuestbookFormState = { status: "idle", message: "" };
 
-export function GuestbookForm({ enabled, siteKey }: { enabled: boolean; siteKey?: string }) {
+export function GuestbookForm({ enabled }: { enabled: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState(submitGuestbookAction, initialState);
 
@@ -18,10 +17,10 @@ export function GuestbookForm({ enabled, siteKey }: { enabled: boolean; siteKey?
     if (state.status === "success") formRef.current?.reset();
   }, [state.status, state.attemptId]);
 
-  if (!enabled || !siteKey) {
+  if (!enabled) {
     return (
       <Alert className="retro-alert">
-        <AlertDescription>The guestbook form will open after the database and anti-spam keys are connected.</AlertDescription>
+        <AlertDescription>The guestbook form will open after the database and visitor cookie are connected.</AlertDescription>
       </Alert>
     );
   }
@@ -42,7 +41,6 @@ export function GuestbookForm({ enabled, siteKey }: { enabled: boolean; siteKey?
         <Textarea id="message" name="message" minLength={1} maxLength={500} rows={7} required />
         <p>Plain text only, up to 500 characters.</p>
       </div>
-      <TurnstileWidget key={state.attemptId || "initial"} siteKey={siteKey} />
       {state.message && (
         <Alert className="retro-alert" variant={state.status === "error" ? "destructive" : "default"} role="status" aria-live="polite">
           <AlertDescription>{state.message}</AlertDescription>

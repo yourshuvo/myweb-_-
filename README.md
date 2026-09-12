@@ -50,7 +50,7 @@ I wanted to build a digital space that felt like having your own vintage PC on t
 - **Archive Explorer**: Navigate through past updates and photo logs using a Windows Explorer directory tree organized by Year and Month.
 - **Photo Albums**: Shareable galleries with responsive image delivery powered by Hack Club CDN.
 - **Markdown Notes**: Life updates with writing stats, reading estimates, and clean retro formatting.
-- **Retro Guestbook**: An Internet Explorer styled guestbook where visitors can leave a note. Protected against bots using Cloudflare Turnstile and signed HMAC visitor cookies with zero IP logging.
+- **Retro Guestbook**: An Internet Explorer styled guestbook where visitors can leave a note. Protected against bots with honeypot fields and signed HMAC visitor cookies with zero IP logging.
 - **Anonymous Q&A**: Ask-me-anything portal with a generator that formats answered questions into story-ready images.
 
 <p align="center">
@@ -88,7 +88,6 @@ For managing the site:
 - **Authentication**: Neon Auth (`@neondatabase/auth`)
 - **Chess Engine**: Stockfish 18 Lite (WebAssembly)
 - **Media Hosting**: Hack Club CDN
-- **Anti-bot Protection**: Cloudflare Turnstile
 - **Testing**: Vitest & Playwright
 
 ---
@@ -98,7 +97,6 @@ For managing the site:
 ### Prerequisites
 - Node.js 20+
 - A Neon Postgres database with Neon Auth enabled
-- Cloudflare Turnstile keys (free)
 - Hack Club CDN API key (for photo uploads)
 
 ### Local Installation
@@ -126,8 +124,6 @@ For managing the site:
    ADMIN_EMAIL=your-email@example.com
 
    HACKCLUB_CDN_API_KEY=your-key
-   NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-site-key
-   TURNSTILE_SECRET_KEY=your-secret-key
    GUESTBOOK_COOKIE_SECRET=your-random-32-char-secret
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```

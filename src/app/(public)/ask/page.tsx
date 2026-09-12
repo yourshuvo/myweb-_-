@@ -4,7 +4,7 @@ import { AnonymousMessageForm } from "@/components/anonymous/anonymous-message-f
 import { W98Icon } from "@/components/desktop/w98-icon";
 import { PageShell } from "@/components/retro/page-shell";
 import { getPublicProfile } from "@/lib/data";
-import { hasGuestbookConfig } from "@/lib/env";
+import { hasVisitorTrackingConfig } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Send an anonymous message",
@@ -15,7 +15,6 @@ export const metadata: Metadata = {
 
 export default async function AskPage() {
   const profile = await getPublicProfile();
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
   const recipientName = profile.displayName?.trim() || "the site owner";
 
   return (
@@ -56,7 +55,7 @@ export default async function AskPage() {
               <W98Icon icon="notepad-file" size={16} />
               <h2 id="ask-form-title">Write a private message</h2>
             </div>
-            <AnonymousMessageForm enabled={hasGuestbookConfig()} siteKey={siteKey} />
+            <AnonymousMessageForm enabled={hasVisitorTrackingConfig()} />
           </section>
         </div>
 

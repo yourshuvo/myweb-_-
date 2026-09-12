@@ -1,9 +1,8 @@
 "use server";
 
 import { refresh, updateTag } from "next/cache";
-import { hasGuestbookConfig } from "@/lib/env";
+import { hasVisitorTrackingConfig } from "@/lib/env";
 import { createGuestbookEntry, incrementVisitorCount, reserveGuestbookSubmission } from "@/lib/guestbook-data";
-import { verifyGuestbookTurnstile } from "@/lib/turnstile";
 import { guestbookSchema } from "@/lib/validation";
 import { getOrCreateVisitorIdentity } from "@/lib/visitor-cookie";
 
@@ -19,7 +18,7 @@ export async function submitGuestbookAction(
   formData: FormData,
 ): Promise<GuestbookFormState> {
   const fail = (message: string): GuestbookFormState => ({ status: "error", message, attemptId: crypto.randomUUID() });
-  if (!hasGuestbookConfig()) {
+  if (!hasVisitorTrackingConfig()) {
     return fail("The guestbook is temporarily unavailable.");
   }
 
@@ -27,14 +26,9 @@ export async function submitGuestbookAction(
     displayName: String(formData.get("displayName") || ""),
     message: String(formData.get("message") || ""),
     company: String(formData.get("company") || ""),
-    turnstileToken: String(formData.get("cf-turnstile-response") || ""),
   });
   if (!parsed.success) {
     return fail(parsed.error.issues[0]?.message || "Check the guestbook fields.");
-  }
-
-  if (!(await verifyGuestbookTurnstile(parsed.data.turnstileToken))) {
-    return fail("The anti-spam check expired or failed. Please try again.");
   }
 
   try {

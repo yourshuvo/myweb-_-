@@ -4,13 +4,7 @@ import { describe, expect, it } from "vitest";
 import { getTableColumns } from "drizzle-orm";
 import { guestbookRateLimits } from "@/db/schema";
 import { formatVisitorCount, guestbookDateTime } from "@/lib/guestbook-format";
-import {
-  acceptsTurnstileResult,
-  createVisitorCookie,
-  GUESTBOOK_ACTION,
-  hashVisitorId,
-  verifyVisitorCookie,
-} from "@/lib/guestbook-security";
+import { createVisitorCookie, hashVisitorId, verifyVisitorCookie } from "@/lib/guestbook-security";
 import { guestbookSchema } from "@/lib/validation";
 
 const cookieSecret = "a".repeat(32);
@@ -22,7 +16,6 @@ describe("guestbook validation", () => {
       displayName: "   ",
       message: "  Hello from the small web.  ",
       company: "",
-      turnstileToken: "token",
     });
 
     expect(parsed.displayName).toBe("");
@@ -30,8 +23,8 @@ describe("guestbook validation", () => {
   });
 
   it("rejects messages longer than 500 characters and filled honeypots", () => {
-    expect(guestbookSchema.safeParse({ displayName: "A", message: "x".repeat(501), company: "", turnstileToken: "token" }).success).toBe(false);
-    expect(guestbookSchema.safeParse({ displayName: "A", message: "Hello", company: "bot", turnstileToken: "token" }).success).toBe(false);
+    expect(guestbookSchema.safeParse({ displayName: "A", message: "x".repeat(501), company: "" }).success).toBe(false);
+    expect(guestbookSchema.safeParse({ displayName: "A", message: "Hello", company: "bot" }).success).toBe(false);
   });
 
   it("is escaped by the React text renderer instead of becoming HTML", () => {
@@ -60,15 +53,6 @@ describe("visitor cookies", () => {
       "submissionCount",
       "updatedAt",
     ]);
-  });
-});
-
-describe("Turnstile response contract", () => {
-  it("accepts only successful responses for the exact action and hostname", () => {
-    expect(acceptsTurnstileResult({ success: true, action: GUESTBOOK_ACTION, hostname: "example.com" }, "example.com")).toBe(true);
-    expect(acceptsTurnstileResult({ success: false, action: GUESTBOOK_ACTION, hostname: "example.com" }, "example.com")).toBe(false);
-    expect(acceptsTurnstileResult({ success: true, action: "login", hostname: "example.com" }, "example.com")).toBe(false);
-    expect(acceptsTurnstileResult({ success: true, action: GUESTBOOK_ACTION, hostname: "attacker.example" }, "example.com")).toBe(false);
   });
 });
 

@@ -114,7 +114,6 @@ export const guestbookSchema = z.object({
     .min(1, "Write a message before signing.")
     .max(500, "Keep the message under 500 characters."),
   company: z.string().max(0, "Automated submission rejected."),
-  turnstileToken: z.string().min(1, "Complete the anti-spam check.").max(2048),
 });
 
 export const guestbookEntryIdSchema = z.uuid("Invalid guestbook entry ID.");
@@ -126,7 +125,6 @@ export const anonymousMessageSchema = z.object({
     .min(1, "Write a message before sending.")
     .max(500, "Keep the message under 500 characters."),
   company: z.string().max(0, "Automated submission rejected."),
-  turnstileToken: z.string().min(1, "Complete the anti-spam check.").max(2048),
 });
 
 export const anonymousMessageIdSchema = z.uuid("Invalid anonymous message ID.");

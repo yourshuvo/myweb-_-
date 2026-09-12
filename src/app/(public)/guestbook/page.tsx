@@ -4,7 +4,7 @@ import { W98Icon } from "@/components/desktop/w98-icon";
 import { GuestbookForm } from "@/components/guestbook/guestbook-form";
 import { PageShell } from "@/components/retro/page-shell";
 import { getPublicProfile } from "@/lib/data";
-import { hasGuestbookConfig } from "@/lib/env";
+import { hasVisitorTrackingConfig } from "@/lib/env";
 import { getGuestbookPage } from "@/lib/guestbook-data";
 import { guestbookDateTime } from "@/lib/guestbook-format";
 import { formatDate } from "@/lib/markdown";
@@ -28,7 +28,6 @@ export default async function GuestbookPage({
     getPublicProfile(),
     getGuestbookPage(Number.isFinite(requestedPage) ? requestedPage : 1),
   ]);
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
 
   return (
     <PageShell profile={profile} title="Guestbook - Internet Explorer" showVisitorCount>
@@ -40,7 +39,7 @@ export default async function GuestbookPage({
       <div className="guestbook-layout">
         <section className="guestbook-signing" aria-labelledby="guestbook-form-title">
           <div className="guestbook-section-title"><W98Icon icon="address-book" size={32} /><h2 id="guestbook-form-title">Add your message</h2></div>
-          <GuestbookForm enabled={hasGuestbookConfig()} siteKey={siteKey} />
+          <GuestbookForm enabled={hasVisitorTrackingConfig()} />
         </section>
         <section className="guestbook-entries" aria-labelledby="guestbook-entries-title">
           <div className="guestbook-section-title"><h2 id="guestbook-entries-title">Recent signatures</h2><span>{guestbook.total}</span></div>

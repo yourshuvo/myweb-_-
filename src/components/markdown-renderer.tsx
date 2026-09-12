@@ -20,7 +20,7 @@ export function MarkdownRenderer({ markdown }: { markdown: string }) {
             if (typeof src !== "string" || !src.startsWith("https://cdn.hackclub.com/")) return null;
             // Markdown images have author-provided dimensions, so native responsive sizing is intentional here.
             // eslint-disable-next-line @next/next/no-img-element
-            return <img src={src} alt={alt} loading="lazy" />;
+            return <img src={src} alt={alt} loading="lazy" data-photo-lightbox={src} data-photo-lightbox-alt={alt} />;
           },
         }}
       >
