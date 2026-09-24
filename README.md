@@ -179,6 +179,7 @@ disabled (all requests 401).
 | GET | `/api/agent/v1/posts` | List posts (`?status=draft\|published&limit&offset`) |
 | POST | `/api/agent/v1/posts` | Create a post |
 | GET/PATCH/DELETE | `/api/agent/v1/posts/[id]` | Read, partial-update (pass `version` for optimistic concurrency), delete |
+| POST | `/api/agent/v1/posts/[id]/duplicate` | Duplicate a post as a new draft (uniquified slug, copied media references) |
 | GET | `/api/agent/v1/albums` | List photo albums |
 | POST | `/api/agent/v1/albums` | Create an album with `items: [{ mediaId, caption }]` |
 | GET/PATCH/DELETE | `/api/agent/v1/albums/[id]` | Read (with items), partial-update (`items` replaces the whole list), delete |
@@ -189,7 +190,9 @@ disabled (all requests 401).
 | PATCH/DELETE | `/api/agent/v1/guestbook/[id]` | Hide/restore (`{status}`), or delete |
 | GET | `/api/agent/v1/messages` | List anonymous messages (`?status=unread\|read\|archived`) |
 | PATCH/DELETE | `/api/agent/v1/messages/[id]` | `{operation: read\|unread\|archive\|restore}`, or delete |
+| GET | `/api/agent/v1/messages/[id]/story` | Render the Windows 98 story card PNG for a message (same image the admin dashboard generates) |
 | GET | `/api/agent/v1/movies` | List movie recommendations |
+| GET | `/api/agent/v1/movies/search?q=title` | Search TMDB (same results the admin dashboard uses when adding a recommendation) |
 | POST | `/api/agent/v1/movies` | Create from `{tmdbId}` (TMDB lookup) or a full manual payload |
 | GET/PATCH/DELETE | `/api/agent/v1/movies/[id]` | Read, update notes/status, delete |
 | GET/PUT | `/api/agent/v1/profile` | Read or replace the site profile (bio, links, Spotify) |
