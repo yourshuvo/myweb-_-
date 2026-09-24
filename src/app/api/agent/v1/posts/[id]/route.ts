@@ -1,5 +1,5 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { mediaAssets, postMedia, posts } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -123,7 +123,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return agentJson({ error: "This post changed on the server. Fetch it again and retry." }, { status: 409 });
     }
     if (fields.body !== undefined) await relinkPostMedia(id, fields.body);
-    if (existing.status === "published" || updated.status === "published") updateTag("posts");
+    if (existing.status === "published" || updated.status === "published") revalidateTag("posts");
     return agentJson({ post: updated });
   } catch (error) {
     const message = error instanceof Error && error.message.includes("posts_slug_unique")
@@ -148,7 +148,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   try {
     const [deleted] = await db.delete(posts).where(eq(posts.id, id)).returning({ id: posts.id, status: posts.status });
     if (!deleted) return agentJson({ error: "Post not found." }, { status: 404 });
-    if (deleted.status === "published") updateTag("posts");
+    if (deleted.status === "published") revalidateTag("posts");
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {
     console.error("[agent/v1/posts] delete failed", {

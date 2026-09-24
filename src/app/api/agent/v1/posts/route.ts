@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { mediaAssets, postMedia, posts } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       .returning();
     if (!created) return agentJson({ error: "The post could not be created." }, { status: 500 });
     await relinkPostMedia(created.id, data.body);
-    if (created.status === "published") updateTag("posts");
+    if (created.status === "published") revalidateTag("posts");
     return agentJson({ post: created }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error && error.message.includes("posts_slug_unique")

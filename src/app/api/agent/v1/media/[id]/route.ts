@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { mediaAssets } from "@/db/schema";
 import { agentJson, denyUnlessAgent } from "@/lib/agent/auth";
@@ -67,7 +67,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const mode = new URL(request.url).searchParams.get("mode");
     if (mode === "local-only") {
       await db.delete(mediaAssets).where(eq(mediaAssets.id, id));
-      updateTag("photos");
+      revalidateTag("photos");
       return agentJson({ deleted: true, id, localOnly: true });
     }
     const apiKey = getServerEnv("HACKCLUB_CDN_API_KEY");
@@ -107,7 +107,7 @@ export async function DELETE(request: Request, context: RouteContext) {
       );
     }
     await db.delete(mediaAssets).where(eq(mediaAssets.id, id));
-    updateTag("photos");
+    revalidateTag("photos");
     return agentJson({ deleted: true, id, cdnId: deleteResult.id });
   } catch (error) {
     console.error("[agent/v1/media] delete failed", {

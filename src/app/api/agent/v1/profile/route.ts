@@ -1,4 +1,4 @@
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { siteProfile } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -78,7 +78,7 @@ export async function PUT(request: Request) {
       .values({ id: 1, ...values })
       .onConflictDoUpdate({ target: siteProfile.id, set: values })
       .returning();
-    updateTag("profile");
+    revalidateTag("profile");
     return agentJson({ profile });
   } catch (error) {
     console.error("[agent/v1/profile] save failed", {

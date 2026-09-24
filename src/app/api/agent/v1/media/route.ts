@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireDb } from "@/db";
 import { mediaAssets } from "@/db/schema";
@@ -83,7 +83,7 @@ async function registerCdnAsset(data: { url: string; altText: string; caption: s
     })
     .onConflictDoNothing()
     .returning();
-  updateTag("photos");
+  revalidateTag("photos");
   return agentJson({ asset }, { status: 201 });
 }
 
@@ -150,7 +150,7 @@ async function uploadImage(body: FormData) {
         showInPhotoLog,
       })
       .returning();
-    updateTag("photos");
+    revalidateTag("photos");
     return agentJson({ asset }, { status: 201 });
   } catch (error) {
     console.error("[agent/v1/media] storing the uploaded image failed", {

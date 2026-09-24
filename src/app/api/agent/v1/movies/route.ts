@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { movieRecommendations } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
   try {
     const [created] = await db.insert(movieRecommendations).values(values).returning();
     if (!created) return agentJson({ error: "The recommendation could not be created." }, { status: 500 });
-    if (created.status === "published") updateTag("movies");
+    if (created.status === "published") revalidateTag("movies");
     return agentJson({ movie: created }, { status: 201 });
   } catch (error) {
     const duplicate = error instanceof Error && error.message.includes("movie_recommendations_tmdb_id_unique");
