@@ -1,21 +1,19 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
-import { submitPostCommentAction, type PostCommentFormState } from "@/app/(public)/updates/[slug]/actions";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const initialState: PostCommentFormState = { status: "idle", message: "" };
+type FormState = { status: "idle" | "error" | "success"; message: string };
 
 export function PostCommentForm({ postId, enabled }: { postId: string; enabled: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, action, pending] = useActionState(submitPostCommentAction, initialState);
-
-  useEffect(() => {
-    if (state.status === "success") formRef.current?.reset();
-  }, [state.status, state.attemptId]);
+  const router = useRouter();
+  const [state, setState] = useState<FormState>({ status: "idle", message: "" });
+  const [pending, setPending] = useState(false);
 
   if (!enabled) {
     return (
@@ -25,9 +23,39 @@ export function PostCommentForm({ postId, enabled }: { postId: string; enabled: 
     );
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setState({ status: "idle", message: "" });
+    try {
+      const formData = new FormData(event.currentTarget);
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          displayName: String(formData.get("displayName") || ""),
+          message: String(formData.get("message") || ""),
+          company: String(formData.get("company") || ""),
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
+      if (!response.ok) {
+        setState({ status: "error", message: data?.error || "The comment could not be saved." });
+      } else {
+        formRef.current?.reset();
+        setState({ status: "success", message: data?.message || "Your comment is now on this post." });
+        router.refresh();
+      }
+    } catch {
+      setState({ status: "error", message: "The comment could not be saved. Please try again." });
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
-    <form ref={formRef} action={action} className="post-comment-form">
-      <input type="hidden" name="postId" value={postId} />
+    <form ref={formRef} onSubmit={handleSubmit} className="post-comment-form">
       <div className="guestbook-honeypot" aria-hidden="true">
         <label htmlFor="comment-company">Company</label>
         <input id="comment-company" name="company" type="text" tabIndex={-1} autoComplete="off" />

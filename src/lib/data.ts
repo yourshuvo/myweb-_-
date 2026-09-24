@@ -178,6 +178,11 @@ export async function getPublishedPost(slug: string) {
   return all.find((post) => post.slug === slug) ?? null;
 }
 
+export async function getPublishedPostById(id: string) {
+  const all = await getPublishedPosts();
+  return all.find((post) => post.id === id) ?? null;
+}
+
 const getCachedPhotoLog = unstable_cache(
   async () => {
     const db = getDb();
