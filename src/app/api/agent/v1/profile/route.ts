@@ -78,7 +78,7 @@ export async function PUT(request: Request) {
       .values({ id: 1, ...values })
       .onConflictDoUpdate({ target: siteProfile.id, set: values })
       .returning();
-    revalidateTag("profile");
+    revalidateTag("profile", { expire: 0 });
     return agentJson({ profile });
   } catch (error) {
     console.error("[agent/v1/profile] save failed", {

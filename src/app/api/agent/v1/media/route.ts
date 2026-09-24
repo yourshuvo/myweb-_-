@@ -83,7 +83,7 @@ async function registerCdnAsset(data: { url: string; altText: string; caption: s
     })
     .onConflictDoNothing()
     .returning();
-  revalidateTag("photos");
+  revalidateTag("photos", { expire: 0 });
   return agentJson({ asset }, { status: 201 });
 }
 
@@ -150,7 +150,7 @@ async function uploadImage(body: FormData) {
         showInPhotoLog,
       })
       .returning();
-    revalidateTag("photos");
+    revalidateTag("photos", { expire: 0 });
     return agentJson({ asset }, { status: 201 });
   } catch (error) {
     console.error("[agent/v1/media] storing the uploaded image failed", {

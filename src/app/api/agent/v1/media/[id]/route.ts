@@ -67,7 +67,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     const mode = new URL(request.url).searchParams.get("mode");
     if (mode === "local-only") {
       await db.delete(mediaAssets).where(eq(mediaAssets.id, id));
-      revalidateTag("photos");
+      revalidateTag("photos", { expire: 0 });
       return agentJson({ deleted: true, id, localOnly: true });
     }
     const apiKey = getServerEnv("HACKCLUB_CDN_API_KEY");
@@ -107,7 +107,7 @@ export async function DELETE(request: Request, context: RouteContext) {
       );
     }
     await db.delete(mediaAssets).where(eq(mediaAssets.id, id));
-    revalidateTag("photos");
+    revalidateTag("photos", { expire: 0 });
     return agentJson({ deleted: true, id, cdnId: deleteResult.id });
   } catch (error) {
     console.error("[agent/v1/media] delete failed", {

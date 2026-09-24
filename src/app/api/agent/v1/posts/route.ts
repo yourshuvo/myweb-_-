@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       .returning();
     if (!created) return agentJson({ error: "The post could not be created." }, { status: 500 });
     await relinkPostMedia(created.id, data.body);
-    if (created.status === "published") revalidateTag("posts");
+    if (created.status === "published") revalidateTag("posts", { expire: 0 });
     return agentJson({ post: created }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error && error.message.includes("posts_slug_unique")

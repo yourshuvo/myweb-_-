@@ -46,7 +46,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .where(eq(guestbookEntries.id, id))
       .returning();
     if (!updated) return agentJson({ error: "Guestbook entry not found." }, { status: 404 });
-    revalidateTag("guestbook");
+    revalidateTag("guestbook", { expire: 0 });
     return agentJson({ entry: updated });
   } catch (error) {
     console.error("[agent/v1/guestbook] update failed", {
@@ -71,7 +71,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   try {
     const [deleted] = await db.delete(guestbookEntries).where(eq(guestbookEntries.id, id)).returning({ id: guestbookEntries.id });
     if (!deleted) return agentJson({ error: "Guestbook entry not found." }, { status: 404 });
-    revalidateTag("guestbook");
+    revalidateTag("guestbook", { expire: 0 });
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {
     console.error("[agent/v1/guestbook] delete failed", {
