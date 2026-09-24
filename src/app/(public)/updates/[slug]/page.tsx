@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PostCommentForm } from "@/components/comments/post-comment-form";
+import { PostCommentList } from "@/components/comments/post-comment-list";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { PostReader } from "@/components/posts/post-reader";
 import { PageShell } from "@/components/retro/page-shell";
 import { getPublishedPost, getPublicProfile } from "@/lib/data";
+import { hasVisitorTrackingConfig } from "@/lib/env";
 import { toIsoDateTime } from "@/lib/date-values";
 import { formatDate } from "@/lib/markdown";
 import { postWritingStats } from "@/lib/admin-post";
@@ -62,6 +65,13 @@ export default async function UpdatePage({ params }: Props) {
           <footer className="post-article__footer"><Link href="/updates">Back to all updates</Link><span>{profile.displayName || profile.siteTitle}</span></footer>
         </article>
       </PostReader>
+      <section className="post-comments" aria-labelledby="post-comments-heading">
+        <div className="guestbook-section-title">
+          <h2 id="post-comments-heading">Join the discussion</h2>
+        </div>
+        <PostCommentForm postId={post.id} enabled={hasVisitorTrackingConfig()} />
+        <PostCommentList postId={post.id} />
+      </section>
     </PageShell>
   );
 }

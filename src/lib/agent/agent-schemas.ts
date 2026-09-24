@@ -149,6 +149,17 @@ export const agentGuestbookPatchSchema = z.object({
   status: z.enum(["visible", "hidden"]),
 });
 
+/** POST /api/agent/v1/posts/[id]/comments — the agent is trusted, so no honeypot or rate limit. */
+export const agentCreatePostCommentSchema = z.object({
+  displayName: z.string().trim().max(40, "Keep the name under 40 characters.").optional(),
+  message: z.string().trim().min(1, "Write a comment before posting.").max(500, "Keep the comment under 500 characters."),
+});
+
+/** PATCH /api/agent/v1/comments/[id] */
+export const agentPostCommentPatchSchema = z.object({
+  status: z.enum(["visible", "hidden"]),
+});
+
 /** PATCH /api/agent/v1/messages/[id] */
 export const agentMessagePatchSchema = z.object({
   operation: z.enum(["read", "unread", "archive", "restore"]),
