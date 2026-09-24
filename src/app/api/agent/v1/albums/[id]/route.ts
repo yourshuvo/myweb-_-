@@ -1,5 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { mediaAssets, photoAlbumItems, photoAlbums } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -134,8 +134,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     });
     if (existing.status === "published" || fields.status === "published") {
-      updateTag("albums");
-      updateTag("photos");
+      revalidateTag("albums");
+      revalidateTag("photos");
     }
     return agentJson({ album: await albumWithItems(id) });
   } catch (error) {
@@ -162,8 +162,8 @@ export async function DELETE(request: Request, context: RouteContext) {
     const [deleted] = await db.delete(photoAlbums).where(eq(photoAlbums.id, id)).returning({ id: photoAlbums.id, status: photoAlbums.status });
     if (!deleted) return agentJson({ error: "Album not found." }, { status: 404 });
     if (deleted.status === "published") {
-      updateTag("albums");
-      updateTag("photos");
+      revalidateTag("albums");
+      revalidateTag("photos");
     }
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {

@@ -1,5 +1,5 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { mediaAssets, photoAlbumItems, photoAlbums } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -131,8 +131,8 @@ export async function POST(request: Request) {
       return created.id;
     });
     if (data.status === "published") {
-      updateTag("albums");
-      updateTag("photos");
+      revalidateTag("albums");
+      revalidateTag("photos");
     }
     return agentJson({ album: await albumWithItems(createdId) }, { status: 201 });
   } catch (error) {

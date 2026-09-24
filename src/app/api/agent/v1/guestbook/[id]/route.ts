@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireDb } from "@/db";
 import { guestbookEntries } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
@@ -46,7 +46,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .where(eq(guestbookEntries.id, id))
       .returning();
     if (!updated) return agentJson({ error: "Guestbook entry not found." }, { status: 404 });
-    updateTag("guestbook");
+    revalidateTag("guestbook");
     return agentJson({ entry: updated });
   } catch (error) {
     console.error("[agent/v1/guestbook] update failed", {
@@ -71,7 +71,7 @@ export async function DELETE(request: Request, context: RouteContext) {
   try {
     const [deleted] = await db.delete(guestbookEntries).where(eq(guestbookEntries.id, id)).returning({ id: guestbookEntries.id });
     if (!deleted) return agentJson({ error: "Guestbook entry not found." }, { status: 404 });
-    updateTag("guestbook");
+    revalidateTag("guestbook");
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {
     console.error("[agent/v1/guestbook] delete failed", {
