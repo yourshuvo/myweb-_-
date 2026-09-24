@@ -131,8 +131,8 @@ export async function POST(request: Request) {
       return created.id;
     });
     if (data.status === "published") {
-      revalidateTag("albums");
-      revalidateTag("photos");
+      revalidateTag("albums", { expire: 0 });
+      revalidateTag("photos", { expire: 0 });
     }
     return agentJson({ album: await albumWithItems(createdId) }, { status: 201 });
   } catch (error) {

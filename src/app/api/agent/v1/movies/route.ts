@@ -135,7 +135,7 @@ export async function POST(request: Request) {
   try {
     const [created] = await db.insert(movieRecommendations).values(values).returning();
     if (!created) return agentJson({ error: "The recommendation could not be created." }, { status: 500 });
-    if (created.status === "published") revalidateTag("movies");
+    if (created.status === "published") revalidateTag("movies", { expire: 0 });
     return agentJson({ movie: created }, { status: 201 });
   } catch (error) {
     const duplicate = error instanceof Error && error.message.includes("movie_recommendations_tmdb_id_unique");

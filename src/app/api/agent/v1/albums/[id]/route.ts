@@ -134,8 +134,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     });
     if (existing.status === "published" || fields.status === "published") {
-      revalidateTag("albums");
-      revalidateTag("photos");
+      revalidateTag("albums", { expire: 0 });
+      revalidateTag("photos", { expire: 0 });
     }
     return agentJson({ album: await albumWithItems(id) });
   } catch (error) {
@@ -162,8 +162,8 @@ export async function DELETE(request: Request, context: RouteContext) {
     const [deleted] = await db.delete(photoAlbums).where(eq(photoAlbums.id, id)).returning({ id: photoAlbums.id, status: photoAlbums.status });
     if (!deleted) return agentJson({ error: "Album not found." }, { status: 404 });
     if (deleted.status === "published") {
-      revalidateTag("albums");
-      revalidateTag("photos");
+      revalidateTag("albums", { expire: 0 });
+      revalidateTag("photos", { expire: 0 });
     }
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {

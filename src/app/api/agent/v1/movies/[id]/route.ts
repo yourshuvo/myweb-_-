@@ -80,7 +80,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     const [updated] = await db.update(movieRecommendations).set(set).where(eq(movieRecommendations.id, id)).returning();
     if (!updated) return agentJson({ error: "The recommendation could not be updated." }, { status: 500 });
-    if (existing.status === "published" || updated.status === "published") revalidateTag("movies");
+    if (existing.status === "published" || updated.status === "published") revalidateTag("movies", { expire: 0 });
     return agentJson({ movie: updated });
   } catch (error) {
     console.error("[agent/v1/movies] update failed", {
@@ -108,7 +108,7 @@ export async function DELETE(request: Request, context: RouteContext) {
       .where(eq(movieRecommendations.id, id))
       .returning({ id: movieRecommendations.id, status: movieRecommendations.status });
     if (!deleted) return agentJson({ error: "Recommendation not found." }, { status: 404 });
-    if (deleted.status === "published") revalidateTag("movies");
+    if (deleted.status === "published") revalidateTag("movies", { expire: 0 });
     return agentJson({ deleted: true, id: deleted.id });
   } catch (error) {
     console.error("[agent/v1/movies] delete failed", {
