@@ -1151,7 +1151,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .welcome-program { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(210px, .7fr); gap: 12px; font-family: Verdana, Arial, sans-serif; }
 .welcome-program__intro { grid-column: 1 / -1; display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 10px; padding: 12px; background: #f4f4f4; border: 1px solid #808080; }
 .welcome-program__intro h1 { margin: 0 0 7px; font-size: 22px; line-height: 1.15; }
-.welcome-program__intro p { max-width: 620px; margin: 0; font-size: 13px; line-height: 1.55; }
+.welcome-program__intro p { max-width: 620px; margin: 0; font-size: 13px; line-height: 1.55; white-space: pre-line; }
 .welcome-program__latest { min-width: 0; }
 .welcome-program__section-title { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; padding: 3px 5px; color: #fff; background: #000080; font-family: var(--font-w95fa), sans-serif; }
 .welcome-program__section-title h2 { margin: 0; font-size: 11px; }
