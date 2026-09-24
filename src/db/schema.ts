@@ -17,6 +17,7 @@ export const postStatus = pgEnum("post_status", ["draft", "published"]);
 export const albumStatus = pgEnum("album_status", ["draft", "published"]);
 export const movieStatus = pgEnum("movie_status", ["draft", "published"]);
 export const guestbookStatus = pgEnum("guestbook_status", ["visible", "hidden"]);
+export const commentStatus = pgEnum("comment_status", ["visible", "hidden"]);
 export const anonymousMessageStatus = pgEnum("anonymous_message_status", ["unread", "read", "archived"]);
 
 export const mediaAssets = pgTable(
@@ -189,6 +190,29 @@ export const guestbookRateLimits = pgTable("guestbook_rate_limits", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const postComments = pgTable(
+  "post_comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    displayName: text("display_name"),
+    message: text("message").notNull(),
+    status: commentStatus("status").default("visible").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+  },
+  (table) => [index("post_comments_post_status_created_idx").on(table.postId, table.status, table.createdAt)],
+);
+
+export const postCommentRateLimits = pgTable("post_comment_rate_limits", {
+  visitorHash: text("visitor_hash").primaryKey(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(),
+  submissionCount: integer("submission_count").default(1).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const anonymousMessages = pgTable(
   "anonymous_messages",
   {
@@ -222,4 +246,5 @@ export type PhotoAlbumItem = typeof photoAlbumItems.$inferSelect;
 export type MovieRecommendation = typeof movieRecommendations.$inferSelect;
 export type SiteProfile = typeof siteProfile.$inferSelect;
 export type GuestbookEntry = typeof guestbookEntries.$inferSelect;
+export type PostComment = typeof postComments.$inferSelect;
 export type AnonymousMessage = typeof anonymousMessages.$inferSelect;

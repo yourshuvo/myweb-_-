@@ -3,7 +3,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { anonymousMessages, guestbookEntries, mediaAssets, movieRecommendations, photoAlbumItems, photoAlbums, postMedia, posts, siteProfile } from "@/db/schema";
+import { anonymousMessages, guestbookEntries, mediaAssets, movieRecommendations, photoAlbumItems, photoAlbums, postComments, postMedia, posts, siteProfile } from "@/db/schema";
 import { requireDb } from "@/db";
 import { normalizeAlbumItems, type AlbumEditorSnapshot, type AlbumSaveResult } from "@/lib/albums";
 import { anonymousMessageTransition } from "@/lib/anonymous-message-model";
@@ -12,7 +12,7 @@ import { requireAdmin } from "@/lib/auth/server";
 import { extractHackClubMediaUrls } from "@/lib/markdown";
 import { normalizeSpotifyPlaylistUrl } from "@/lib/spotify";
 import { getTmdbMovie, TmdbRequestError } from "@/lib/tmdb";
-import { albumEditorSchema, anonymousMessageIdSchema, guestbookEntryIdSchema, mediaUrlSchema, movieRecommendationIdSchema, movieRecommendationSchema, postEditorSnapshotSchema, profileSchema } from "@/lib/validation";
+import { albumEditorSchema, anonymousMessageIdSchema, guestbookEntryIdSchema, mediaUrlSchema, movieRecommendationIdSchema, movieRecommendationSchema, postCommentIdSchema, postEditorSnapshotSchema, profileSchema } from "@/lib/validation";
 
 export type FormState = { status: "idle" | "error" | "success"; message: string };
 export type MovieMutationState = FormState & { recommendationId?: string };
@@ -516,6 +516,30 @@ export async function deleteGuestbookEntryAction(formData: FormData) {
   const id = guestbookEntryIdSchema.parse(String(formData.get("id") || ""));
   await requireDb().delete(guestbookEntries).where(eq(guestbookEntries.id, id));
   updateTag("guestbook");
+  refresh();
+}
+
+export async function hidePostCommentAction(formData: FormData) {
+  await requireAdmin();
+  const id = postCommentIdSchema.parse(String(formData.get("id") || ""));
+  await requireDb().update(postComments).set({ status: "hidden", hiddenAt: new Date() }).where(eq(postComments.id, id));
+  updateTag("post-comments");
+  refresh();
+}
+
+export async function restorePostCommentAction(formData: FormData) {
+  await requireAdmin();
+  const id = postCommentIdSchema.parse(String(formData.get("id") || ""));
+  await requireDb().update(postComments).set({ status: "visible", hiddenAt: null }).where(eq(postComments.id, id));
+  updateTag("post-comments");
+  refresh();
+}
+
+export async function deletePostCommentAction(formData: FormData) {
+  await requireAdmin();
+  const id = postCommentIdSchema.parse(String(formData.get("id") || ""));
+  await requireDb().delete(postComments).where(eq(postComments.id, id));
+  updateTag("post-comments");
   refresh();
 }
 

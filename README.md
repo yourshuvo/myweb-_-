@@ -50,6 +50,7 @@ I wanted to build a digital space that felt like having your own vintage PC on t
 - **Archive Explorer**: Navigate through past updates and photo logs using a Windows Explorer directory tree organized by Year and Month.
 - **Photo Albums**: Shareable galleries with responsive image delivery powered by Hack Club CDN.
 - **Markdown Notes**: Life updates with writing stats, reading estimates, and clean retro formatting.
+- **Post Comments**: Visitors can discuss each update with an optional name. Same bot protection as the guestbook (honeypot fields, signed visitor cookies, daily limits), plus admin moderation.
 - **Retro Guestbook**: An Internet Explorer styled guestbook where visitors can leave a note. Protected against bots with honeypot fields and signed HMAC visitor cookies with zero IP logging.
 - **Anonymous Q&A**: Ask-me-anything portal with a generator that formats answered questions into story-ready images.
 
@@ -190,6 +191,8 @@ disabled (all requests 401).
 | GET/DELETE | `/api/agent/v1/media/[id]` | Read, or delete (`?mode=local-only` skips the CDN delete) |
 | GET | `/api/agent/v1/guestbook` | List guestbook entries (`?status=visible\|hidden`) |
 | PATCH/DELETE | `/api/agent/v1/guestbook/[id]` | Hide/restore (`{status}`), or delete |
+| GET/POST | `/api/agent/v1/posts/[id]/comments` | List a post's comments (`?status=visible\|hidden`), or create one (`{displayName?, message}`) |
+| PATCH/DELETE | `/api/agent/v1/comments/[id]` | Hide/restore (`{status}`), or delete |
 | GET | `/api/agent/v1/messages` | List anonymous messages (`?status=unread\|read\|archived`) |
 | PATCH/DELETE | `/api/agent/v1/messages/[id]` | `{operation: read\|unread\|archive\|restore}`, or delete |
 | GET | `/api/agent/v1/messages/[id]/story` | Render the Windows 98 story card PNG for a message (same image the admin dashboard generates) |

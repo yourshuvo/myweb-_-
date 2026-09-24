@@ -118,6 +118,18 @@ export const guestbookSchema = z.object({
 
 export const guestbookEntryIdSchema = z.uuid("Invalid guestbook entry ID.");
 
+export const postCommentSchema = z.object({
+  displayName: z.string().trim().max(40, "Keep the name under 40 characters.").optional(),
+  message: z
+    .string()
+    .trim()
+    .min(1, "Write a comment before posting.")
+    .max(500, "Keep the comment under 500 characters."),
+  company: z.string().max(0, "Automated submission rejected.").optional(),
+});
+
+export const postCommentIdSchema = z.uuid("Invalid comment ID.");
+
 export const anonymousMessageSchema = z.object({
   message: z
     .string()
