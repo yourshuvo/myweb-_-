@@ -152,6 +152,57 @@ For managing the site:
 
 ---
 
+## Agent API
+
+A versioned REST API under `/api/agent/v1` lets an AI agent manage every content
+domain on the site over HTTP: blog posts, photo albums, the media library,
+guestbook moderation, anonymous messages, movie recommendations, the site
+profile, and a read-only status/health snapshot.
+
+### Authentication
+
+Set `AGENT_API_KEY` in the environment (add it in the Vercel project settings
+for production). Every request must carry the key in one of these headers:
+
+- `Authorization: Bearer <AGENT_API_KEY>`, or
+- `X-Agent-Key: <AGENT_API_KEY>`
+
+Keys are compared in constant time and never logged. Missing or invalid keys get
+`401 {"error":"Unauthorized"}`; when `AGENT_API_KEY` is unset the whole API is
+disabled (all requests 401).
+
+### Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | `/api/agent/v1/status` | Health snapshot: version, config flags, per-table counts |
+| GET | `/api/agent/v1/posts` | List posts (`?status=draft\|published&limit&offset`) |
+| POST | `/api/agent/v1/posts` | Create a post |
+| GET/PATCH/DELETE | `/api/agent/v1/posts/[id]` | Read, partial-update (pass `version` for optimistic concurrency), delete |
+| POST | `/api/agent/v1/posts/[id]/duplicate` | Duplicate a post as a new draft (uniquified slug, copied media references) |
+| GET | `/api/agent/v1/albums` | List photo albums |
+| POST | `/api/agent/v1/albums` | Create an album with `items: [{ mediaId, caption }]` |
+| GET/PATCH/DELETE | `/api/agent/v1/albums/[id]` | Read (with items), partial-update (`items` replaces the whole list), delete |
+| GET | `/api/agent/v1/media` | List media assets |
+| POST | `/api/agent/v1/media` | Upload an image (multipart `file`) or register an existing CDN URL (JSON) |
+| GET/DELETE | `/api/agent/v1/media/[id]` | Read, or delete (`?mode=local-only` skips the CDN delete) |
+| GET | `/api/agent/v1/guestbook` | List guestbook entries (`?status=visible\|hidden`) |
+| PATCH/DELETE | `/api/agent/v1/guestbook/[id]` | Hide/restore (`{status}`), or delete |
+| GET | `/api/agent/v1/messages` | List anonymous messages (`?status=unread\|read\|archived`) |
+| PATCH/DELETE | `/api/agent/v1/messages/[id]` | `{operation: read\|unread\|archive\|restore}`, or delete |
+| GET | `/api/agent/v1/messages/[id]/story` | Render the Windows 98 story card PNG for a message (same image the admin dashboard generates) |
+| GET | `/api/agent/v1/movies` | List movie recommendations |
+| GET | `/api/agent/v1/movies/search?q=title` | Search TMDB (same results the admin dashboard uses when adding a recommendation) |
+| POST | `/api/agent/v1/movies` | Create from `{tmdbId}` (TMDB lookup) or a full manual payload |
+| GET/PATCH/DELETE | `/api/agent/v1/movies/[id]` | Read, update notes/status, delete |
+| GET/PUT | `/api/agent/v1/profile` | Read or replace the site profile (bio, links, Spotify) |
+
+All responses are JSON with `Cache-Control: private, no-store`. Mutations
+revalidate the same Next.js cache tags as the admin dashboard, so the public
+site updates immediately.
+
+---
+
 ## Privacy & Security
 
 - **No IP Logging**: Visitor counts and rate limits use salted HMAC signatures; no raw IP addresses are ever saved.
