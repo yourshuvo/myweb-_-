@@ -6,6 +6,7 @@ const serverEnvNames = [
   "HACKCLUB_CDN_API_KEY",
   "TMDB_API_KEY",
   "GUESTBOOK_COOKIE_SECRET",
+  "AGENT_API_KEY",
 ] as const;
 
 export type ServerEnvName = (typeof serverEnvNames)[number];

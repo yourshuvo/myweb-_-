@@ -36,13 +36,9 @@ import { formatDate } from "@/lib/markdown";
 
 export function AskLinkTools({ askUrl }: { askUrl: string }) {
   const [status, setStatus] = useState("");
-  const [effectiveUrl, setEffectiveUrl] = useState(askUrl);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.location.origin) {
-      setEffectiveUrl(`${window.location.origin}/ask`);
-    }
-  }, []);
+  const [effectiveUrl] = useState(() =>
+    typeof window !== "undefined" && window.location.origin ? `${window.location.origin}/ask` : askUrl,
+  );
 
   async function copyLink() {
     try {
