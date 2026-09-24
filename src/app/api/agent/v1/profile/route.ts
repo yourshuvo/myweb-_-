@@ -70,12 +70,12 @@ export async function PUT(request: Request) {
       },
       spotifyPlaylistTitle: data.spotifyPlaylistTitle,
       spotifyPlaylistUrl,
-      onboardedAt: new Date(),
       updatedAt: new Date(),
     };
     const [profile] = await db
       .insert(siteProfile)
-      .values({ id: 1, ...values })
+      // onboardedAt is set only on first creation; updates must preserve it.
+      .values({ id: 1, ...values, onboardedAt: new Date() })
       .onConflictDoUpdate({ target: siteProfile.id, set: values })
       .returning();
     revalidateTag("profile", { expire: 0 });

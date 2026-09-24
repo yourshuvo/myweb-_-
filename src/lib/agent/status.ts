@@ -10,7 +10,7 @@ import {
   posts,
   siteStats,
 } from "@/db/schema";
-import { hasDatabaseConfig, hasTmdbConfig } from "@/lib/env";
+import { hasAuthConfig, hasDatabaseConfig, hasTmdbConfig, hasVisitorTrackingConfig, getServerEnv } from "@/lib/env";
 
 export const AGENT_API_VERSION = "v1";
 
@@ -31,6 +31,13 @@ export type AgentStatus = {
   time: string;
   dbConfigured: boolean;
   tmdbConfigured: boolean;
+  /** Mirrors the admin dashboard "Service check" panel (booleans only, no secrets). */
+  services: {
+    auth: boolean;
+    uploads: boolean;
+    tmdb: boolean;
+    visitorTracking: boolean;
+  };
   counts: Record<string, number | null> | null;
   visitorTotal: number | null;
 };
@@ -62,6 +69,12 @@ export async function getAgentStatus(db: AgentDb | null): Promise<AgentStatus> {
     time: new Date().toISOString(),
     dbConfigured,
     tmdbConfigured: hasTmdbConfig(),
+    services: {
+      auth: hasAuthConfig(),
+      uploads: Boolean(getServerEnv("HACKCLUB_CDN_API_KEY")),
+      tmdb: hasTmdbConfig(),
+      visitorTracking: hasVisitorTrackingConfig(),
+    },
     counts,
     visitorTotal,
   };

@@ -38,6 +38,12 @@ describe("GET /api/agent/v1/status", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body).toMatchObject({ ok: true, version: "v1", dbConfigured: false, counts: null, visitorTotal: null });
+    expect(body.services).toEqual({
+      auth: expect.any(Boolean),
+      uploads: expect.any(Boolean),
+      tmdb: expect.any(Boolean),
+      visitorTracking: expect.any(Boolean),
+    });
     expect(typeof body.time).toBe("string");
   });
 
