@@ -157,7 +157,7 @@ For managing the site:
 A versioned REST API under `/api/agent/v1` lets an AI agent manage every content
 domain on the site over HTTP: blog posts, photo albums, the media library,
 guestbook moderation, anonymous messages, movie recommendations, the site
-profile, and a read-only status/health snapshot.
+profile, plus read-only status/health, activity-feed, and OpenAPI snapshots.
 
 ### Authentication
 
@@ -175,7 +175,9 @@ disabled (all requests 401).
 
 | Method | Path | Description |
 | --- | --- | --- |
-| GET | `/api/agent/v1/status` | Health snapshot: version, config flags, per-table counts |
+| GET | `/api/agent/v1/status` | Health snapshot: version, config flags, service checks, per-table counts |
+| GET | `/api/agent/v1/activity` | Recent activity across all content types, newest first (`?limit`) |
+| GET | `/api/agent/v1/openapi.json` | Machine-readable OpenAPI 3.1 description of this API |
 | GET | `/api/agent/v1/posts` | List posts (`?status=draft\|published&limit&offset`) |
 | POST | `/api/agent/v1/posts` | Create a post |
 | GET/PATCH/DELETE | `/api/agent/v1/posts/[id]` | Read, partial-update (pass `version` for optimistic concurrency), delete |
