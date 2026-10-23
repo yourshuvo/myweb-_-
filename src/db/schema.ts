@@ -55,6 +55,7 @@ export const posts = pgTable(
     thumbnailMediaId: uuid("thumbnail_media_id").references(() => mediaAssets.id, {
       onDelete: "set null",
     }),
+    passwordHash: text("password_hash"),
     authorId: text("author_id").notNull(),
     version: integer("version").default(1).notNull(),
     publishedAt: timestamp("published_at", { withTimezone: true }),

@@ -22,7 +22,7 @@ export default async function Home() {
     getLatestGuestbookEntries(),
   ]);
   const latestPost = posts[0];
-  const latestThumbnail = latestPost ? resolvePostThumbnail(latestPost) : null;
+  const latestThumbnail = latestPost && !latestPost.isPasswordProtected ? resolvePostThumbnail(latestPost) : null;
 
   return (
     <PageShell profile={profile} title="Welcome.txt">
@@ -43,7 +43,7 @@ export default async function Home() {
               <span className="welcome-latest-file__preview">
                 {latestThumbnail ? <Image src={latestThumbnail.url} alt="" width={180} height={102} /> : <W98Icon icon="notepad-file" size={32} />}
               </span>
-              <span><strong>{latestPost.title}</strong><time>{formatDate(latestPost.publishedAt)}</time><small>{latestPost.excerpt || "Open this update to read more."}</small></span>
+              <span><strong>{latestPost.title}</strong><time>{formatDate(latestPost.publishedAt)}</time><small>{latestPost.isPasswordProtected ? "🔒 Password protected — enter the password to read this update." : latestPost.excerpt || "Open this update to read more."}</small></span>
             </Link>
           ) : (
             <p className="win98-inline-empty">No updates have been published yet.</p>

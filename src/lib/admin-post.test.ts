@@ -6,6 +6,7 @@ import {
   parsePostRecovery,
   postRecoveryKey,
   postWritingStats,
+  sanitizeSnapshotForRecovery,
   snapshotContent,
   type PostEditorSnapshot,
 } from "@/lib/admin-post";
@@ -21,6 +22,8 @@ const snapshot: PostEditorSnapshot = {
   coverMediaId: "",
   thumbnailMediaId: "",
   publishedAt: "",
+  passwordProtected: false,
+  password: "",
 };
 
 describe("post recovery", () => {
@@ -48,6 +51,44 @@ describe("post recovery", () => {
   it("compares content without treating server IDs and versions as edits", () => {
     expect(snapshotContent({ ...snapshot, id: "one", version: 1 })).toBe(snapshotContent({ ...snapshot, id: "two", version: 9 }));
     expect(snapshotContent({ ...snapshot, body: "Changed" })).not.toBe(snapshotContent(snapshot));
+  });
+
+  it("defaults password fields for recovery data saved before password protection", () => {
+    const now = 10_000_000_000;
+    const legacySnapshot: Partial<PostEditorSnapshot> = { ...snapshot };
+    delete legacySnapshot.passwordProtected;
+    delete legacySnapshot.password;
+    const recovered = parsePostRecovery(JSON.stringify({ savedAt: now, snapshot: legacySnapshot }), now);
+    expect(recovered?.snapshot.passwordProtected).toBe(false);
+    expect(recovered?.snapshot.password).toBe("");
+  });
+
+  it("keeps the protection flag in content comparison without leaking the plaintext password", () => {
+    const withPassword = { ...snapshot, passwordProtected: true, password: "hunter2-secret" };
+    const content = snapshotContent(withPassword);
+    expect(content).not.toContain("hunter2-secret");
+    expect(JSON.parse(content)).toMatchObject({ passwordProtected: true, passwordChanged: true });
+    expect(snapshotContent({ ...snapshot, passwordProtected: true })).not.toBe(snapshotContent(snapshot));
+    expect(snapshotContent({ ...snapshot, password: "one-secret" })).not.toBe(snapshotContent({ ...snapshot, password: "" }));
+    expect(snapshotContent({ ...snapshot, password: "one-secret" })).toBe(snapshotContent({ ...snapshot, password: "another-secret" }));
+  });
+
+  it("strips the plaintext password from snapshots prepared for recovery storage", () => {
+    const sanitized = sanitizeSnapshotForRecovery({ ...snapshot, passwordProtected: true, password: "hunter2-secret" });
+    expect(sanitized.password).toBe("");
+    expect(sanitized.passwordProtected).toBe(true);
+    expect(JSON.stringify(sanitized)).not.toContain("hunter2-secret");
+  });
+
+  it("never restores a plaintext password from recovery storage", () => {
+    const now = 10_000_000_000;
+    const stored = JSON.stringify({
+      savedAt: now,
+      snapshot: { ...snapshot, passwordProtected: true, password: "hunter2-secret" },
+    });
+    const recovered = parsePostRecovery(stored, now);
+    expect(recovered?.snapshot.passwordProtected).toBe(true);
+    expect(recovered?.snapshot.password).toBe("");
   });
 });
 

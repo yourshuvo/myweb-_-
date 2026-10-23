@@ -68,7 +68,8 @@ export async function POST(request: Request, context: RouteContext) {
       return [created];
     });
     if (!copy) return agentJson({ error: "The duplicate could not be created." }, { status: 500 });
-    return agentJson({ post: copy }, { status: 201 });
+    const { passwordHash: _duplicatePasswordHash, ...copyWithoutHash } = copy;
+    return agentJson({ post: { ...copyWithoutHash, isPasswordProtected: Boolean(_duplicatePasswordHash) } }, { status: 201 });
   } catch (error) {
     console.error("[agent/v1/posts] duplicate failed", {
       error: error instanceof Error ? error.message : String(error),

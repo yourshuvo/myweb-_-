@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { movieRecommendationSchema, passwordResetRequestSchema, passwordResetSchema, postSchema, profileSchema, slugify, tmdbSearchSchema } from "@/lib/validation";
+import { movieRecommendationSchema, passwordResetRequestSchema, passwordResetSchema, postEditorSnapshotSchema, postSchema, profileSchema, slugify, tmdbSearchSchema } from "@/lib/validation";
 
 describe("slugify", () => {
   it("creates a stable URL slug", () => {
@@ -32,6 +32,46 @@ describe("content validation", () => {
   it("validates TMDB search length", () => {
     expect(tmdbSearchSchema.safeParse({ query: "Alien" }).success).toBe(true);
     expect(tmdbSearchSchema.safeParse({ query: "A" }).success).toBe(false);
+  });
+});
+
+describe("post password validation", () => {
+  const baseSnapshot = {
+    id: "",
+    version: 0,
+    title: "Test",
+    slug: "test",
+    excerpt: "",
+    body: "",
+    status: "draft" as const,
+    coverMediaId: "",
+    thumbnailMediaId: "",
+    publishedAt: "",
+    passwordProtected: true,
+  };
+
+  it("accepts an empty password (no change) and a password of at least 4 characters", () => {
+    expect(postEditorSnapshotSchema.safeParse({ ...baseSnapshot, password: "" }).success).toBe(true);
+    expect(postEditorSnapshotSchema.safeParse({ ...baseSnapshot, password: "abcd" }).success).toBe(true);
+    expect(postEditorSnapshotSchema.safeParse({ ...baseSnapshot, passwordProtected: false, password: "" }).success).toBe(true);
+  });
+
+  it("rejects passwords under 4 or over 128 characters", () => {
+    expect(postEditorSnapshotSchema.safeParse({ ...baseSnapshot, password: "abc" }).success).toBe(false);
+    expect(postEditorSnapshotSchema.safeParse({ ...baseSnapshot, password: "x".repeat(129) }).success).toBe(false);
+  });
+
+  it("requires the passwordProtected flag in editor snapshots", () => {
+    const { passwordProtected: _omitted, ...withoutFlag } = baseSnapshot;
+    expect(postEditorSnapshotSchema.safeParse({ ...withoutFlag, password: "" }).success).toBe(false);
+  });
+
+  it("keeps the agent-facing post password optional and nullable", () => {
+    const basePost = { id: "", title: "Test", slug: "test", excerpt: "", body: "", status: "draft", coverMediaId: "", thumbnailMediaId: "", publishedAt: "" };
+    expect(postSchema.safeParse(basePost).success).toBe(true);
+    expect(postSchema.safeParse({ ...basePost, password: "abcd" }).success).toBe(true);
+    expect(postSchema.safeParse({ ...basePost, password: null }).success).toBe(true);
+    expect(postSchema.safeParse({ ...basePost, password: "abc" }).success).toBe(false);
   });
 });
 

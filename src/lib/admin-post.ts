@@ -12,6 +12,8 @@ export type PostEditorSnapshot = {
   coverMediaId: string;
   thumbnailMediaId: string;
   publishedAt: string;
+  passwordProtected: boolean;
+  password: string;
 };
 
 export type PostRecoveryRecord = {
@@ -51,7 +53,14 @@ export function snapshotContent(snapshot: PostEditorSnapshot) {
     coverMediaId: snapshot.coverMediaId,
     thumbnailMediaId: snapshot.thumbnailMediaId,
     publishedAt: snapshot.publishedAt,
+    passwordProtected: snapshot.passwordProtected ?? false,
+    passwordChanged: Boolean(snapshot.password),
   });
+}
+
+/** Copy safe to persist in localStorage: never the plaintext password. */
+export function sanitizeSnapshotForRecovery(snapshot: PostEditorSnapshot): PostEditorSnapshot {
+  return { ...snapshot, password: "" };
 }
 
 export function parsePostRecovery(value: string | null, now = Date.now()): PostRecoveryRecord | null {
@@ -66,7 +75,7 @@ export function parsePostRecovery(value: string | null, now = Date.now()): PostR
     ) {
       return null;
     }
-    const snapshot = parsed.snapshot as Partial<PostEditorSnapshot>;
+    const snapshot = parsed.snapshot as Partial<PostEditorSnapshot> & { passwordChanged?: unknown };
     if (
       typeof snapshot.id !== "string" ||
       typeof snapshot.version !== "number" ||
@@ -77,7 +86,8 @@ export function parsePostRecovery(value: string | null, now = Date.now()): PostR
       (snapshot.status !== "draft" && snapshot.status !== "published") ||
       typeof snapshot.coverMediaId !== "string" ||
       (snapshot.thumbnailMediaId !== undefined && typeof snapshot.thumbnailMediaId !== "string") ||
-      typeof snapshot.publishedAt !== "string"
+      typeof snapshot.publishedAt !== "string" ||
+      (snapshot.passwordProtected !== undefined && typeof snapshot.passwordProtected !== "boolean")
     ) {
       return null;
     }
@@ -86,6 +96,9 @@ export function parsePostRecovery(value: string | null, now = Date.now()): PostR
       snapshot: {
         ...snapshot,
         thumbnailMediaId: snapshot.thumbnailMediaId ?? "",
+        passwordProtected: snapshot.passwordProtected ?? false,
+        // Plaintext passwords are never recovered from localStorage.
+        password: "",
       } as PostEditorSnapshot,
     };
   } catch {
