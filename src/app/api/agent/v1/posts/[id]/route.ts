@@ -5,6 +5,15 @@ import { mediaAssets, postMedia, posts } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
 import { agentUpdatePostSchema, uuidParam } from "@/lib/agent/agent-schemas";
 import { extractHackClubMediaUrls } from "@/lib/markdown";
+import { hashPostPassword } from "@/lib/post-password";
+
+type PostRow = typeof posts.$inferSelect;
+
+/** Never expose the password hash through the agent API. */
+function agentPost(row: PostRow) {
+  const { passwordHash, ...rest } = row;
+  return { ...rest, isPasswordProtected: Boolean(passwordHash) };
+}
 
 export const runtime = "nodejs";
 
@@ -51,7 +60,7 @@ export async function GET(request: Request, context: RouteContext) {
       .select({ mediaId: postMedia.mediaId })
       .from(postMedia)
       .where(eq(postMedia.postId, id));
-    return agentJson({ post: { ...post, mediaIds: media.map((row) => row.mediaId) } });
+    return agentJson({ post: { ...agentPost(post), mediaIds: media.map((row) => row.mediaId) } });
   } catch (error) {
     console.error("[agent/v1/posts] fetch failed", {
       error: error instanceof Error ? error.message : String(error),
@@ -86,8 +95,12 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!parsed.success) return agentJson({ error: firstValidationError(parsed.error) }, { status: 400 });
   const { version, ...fields } = parsed.data;
   const set: Record<string, unknown> = { updatedAt: new Date() };
+  if (fields.password !== undefined) {
+    set.passwordHash = fields.password ? hashPostPassword(fields.password) : null;
+    delete set.password;
+  }
   for (const [key, value] of Object.entries(fields)) {
-    if (value === undefined) continue;
+    if (key === "password" || value === undefined) continue;
     if ((key === "coverMediaId" || key === "thumbnailMediaId") && value === "") {
       set[key] = null;
     } else {
@@ -124,7 +137,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     if (fields.body !== undefined) await relinkPostMedia(id, fields.body);
     if (existing.status === "published" || updated.status === "published") revalidateTag("posts", { expire: 0 });
-    return agentJson({ post: updated });
+    return agentJson({ post: agentPost(updated) });
   } catch (error) {
     const message = error instanceof Error && error.message.includes("posts_slug_unique")
       ? "That slug is already in use."

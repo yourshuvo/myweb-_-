@@ -20,6 +20,7 @@ import {
   parsePostRecovery,
   postRecoveryKey,
   postWritingStats,
+  sanitizeSnapshotForRecovery,
   snapshotContent,
   type PostEditorSnapshot,
   type PostRecoveryRecord,
@@ -27,7 +28,11 @@ import {
 } from "@/lib/admin-post";
 import { slugify } from "@/lib/validation";
 
-type EditablePost = Pick<Post, "id" | "version" | "title" | "slug" | "excerpt" | "body" | "status" | "coverMediaId" | "thumbnailMediaId" | "publishedAt" | "updatedAt">;
+/** Sanitized admin post: `passwordProtected` is derived server-side from the
+ * stored hash — the hash itself is never sent to this client component. */
+type EditablePost = Pick<Post, "id" | "version" | "title" | "slug" | "excerpt" | "body" | "status" | "coverMediaId" | "thumbnailMediaId" | "publishedAt" | "updatedAt"> & {
+  passwordProtected?: boolean;
+};
 type SaveIndicator = "saved" | "unsaved" | "local" | "saving" | "offline" | "waiting" | "conflict" | "error";
 type SaveMode = "autosave" | "explicit";
 
@@ -49,6 +54,8 @@ function initialSnapshot(post?: EditablePost): PostEditorSnapshot {
     coverMediaId: post?.coverMediaId ?? "",
     thumbnailMediaId: post?.thumbnailMediaId ?? "",
     publishedAt: localDateTime(post?.publishedAt),
+    passwordProtected: post?.passwordProtected ?? false,
+    password: "",
   };
 }
 
@@ -130,13 +137,22 @@ export function PostEditor({ post, media }: { post?: EditablePost; media: MediaA
         return;
       }
 
-      const confirmedContent = snapshotContent(candidate);
+      // The password was persisted as a hash; clear the plaintext from the
+      // editor state so an empty field means "no change" from now on.
+      const confirmedSnapshot: PostEditorSnapshot = { ...candidate, password: "" };
+      const confirmedContent = snapshotContent(confirmedSnapshot);
       setServerContent(confirmedContent);
       setServerStatus(result.persistedStatus);
       setLastSavedAt(new Date(result.savedAt));
       setMessage(result.message);
       const previousKey = postRecoveryKey(candidate.id);
-      const nextSnapshot = { ...latestRef.current, id: result.postId, version: result.version };
+      const latestPassword = latestRef.current.password;
+      const nextSnapshot: PostEditorSnapshot = {
+        ...latestRef.current,
+        id: result.postId,
+        version: result.version,
+        password: latestPassword === candidate.password ? "" : latestPassword,
+      };
       latestRef.current = nextSnapshot;
       setSnapshot(nextSnapshot);
       window.dispatchEvent(new CustomEvent("admin-post-version", { detail: { id: result.postId, version: result.version } }));
@@ -147,7 +163,7 @@ export function PostEditor({ post, media }: { post?: EditablePost; media: MediaA
           localStorage.removeItem(postRecoveryKey(result.postId));
           setIndicator("saved");
         } else {
-          localStorage.setItem(postRecoveryKey(result.postId), JSON.stringify({ savedAt: Date.now(), snapshot: nextSnapshot }));
+          localStorage.setItem(postRecoveryKey(result.postId), JSON.stringify({ savedAt: Date.now(), snapshot: sanitizeSnapshotForRecovery(nextSnapshot) }));
           if (previousKey !== postRecoveryKey(result.postId)) localStorage.removeItem(previousKey);
           setIndicator("local");
         }
@@ -196,7 +212,7 @@ export function PostEditor({ post, media }: { post?: EditablePost; media: MediaA
     }
     const timer = window.setTimeout(() => {
       try {
-        localStorage.setItem(postRecoveryKey(snapshot.id), JSON.stringify({ savedAt: Date.now(), snapshot }));
+        localStorage.setItem(postRecoveryKey(snapshot.id), JSON.stringify({ savedAt: Date.now(), snapshot: sanitizeSnapshotForRecovery(snapshot) }));
         if (indicatorRef.current !== "conflict" && indicatorRef.current !== "saving") {
           setIndicator(!isAutosaveReady(snapshot) && snapshot.status === "draft" ? "waiting" : navigator.onLine ? "local" : "offline");
         }
@@ -371,6 +387,10 @@ export function PostEditor({ post, media }: { post?: EditablePost; media: MediaA
             <label>Publish date<input name="publishedAt" type="datetime-local" value={snapshot.publishedAt} onChange={(event) => updateSnapshot("publishedAt", event.target.value)} /><small>Leave blank to use the publish time.</small></label>
             <label>Cover image<select name="coverMediaId" value={snapshot.coverMediaId} onChange={(event) => updateSnapshot("coverMediaId", event.target.value)}><option value="">No cover</option>{media.map((asset) => <option key={asset.id} value={asset.id}>{asset.filename}</option>)}</select><small>Shown at the top of the full post.</small></label>
             <label>Social thumbnail<select name="thumbnailMediaId" value={snapshot.thumbnailMediaId} onChange={(event) => updateSnapshot("thumbnailMediaId", event.target.value)}><option value="">Use cover image</option>{media.map((asset) => <option key={asset.id} value={asset.id}>{asset.filename}</option>)}</select><small>Used in update lists and social cards. 1200 x 630 works best.</small></label>
+            <label><span><input type="checkbox" checked={snapshot.passwordProtected} onChange={(event) => updateSnapshot("passwordProtected", event.target.checked)} /> Password protect this update</span><small>Visitors must enter the password to read this update. Other updates stay public.</small></label>
+            {snapshot.passwordProtected && (
+              <label>Update password<input name="postPassword" type="password" autoComplete="new-password" minLength={4} maxLength={128} value={snapshot.password} onChange={(event) => updateSnapshot("password", event.target.value)} placeholder="Set a password" /><small>Leave blank to keep the current password for an already-protected post. A new post needs a password (at least 4 characters).</small></label>
+            )}
           </div>
         </details>
 

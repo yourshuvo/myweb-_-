@@ -10,5 +10,8 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const [post, media] = await Promise.all([getAdminPost(id), getAdminMedia()]);
   if (!post) notFound();
-  return <div className="admin-page admin-page--wide"><header className="admin-heading admin-heading--row"><div><p className="eyebrow">EDIT UPDATE</p><h1>{post.title}</h1><p>Drafts autosave to Neon. Published changes remain private until you update them explicitly.</p></div><PostActions id={post.id} title={post.title} version={post.version} /></header><PostEditor post={post} media={media} /></div>;
+  // Never send the password hash to the client editor — only whether one is set.
+  const { passwordHash, ...postWithoutHash } = post;
+  const editablePost = { ...postWithoutHash, passwordProtected: Boolean(passwordHash) };
+  return <div className="admin-page admin-page--wide"><header className="admin-heading admin-heading--row"><div><p className="eyebrow">EDIT UPDATE</p><h1>{post.title}</h1><p>Drafts autosave to Neon. Published changes remain private until you update them explicitly.</p></div><PostActions id={post.id} title={post.title} version={post.version} /></header><PostEditor post={editablePost} media={media} /></div>;
 }

@@ -23,6 +23,13 @@ export const profileSchema = z.object({
     }),
 });
 
+const postPasswordValueSchema = z
+  .string()
+  .max(128, "Use no more than 128 characters for the post password.")
+  .refine((value) => value === "" || value.length >= 4, {
+    message: "Use at least 4 characters for the post password.",
+  });
+
 export const postSchema = z.object({
   id: z.union([z.literal(""), z.uuid()]),
   title: z.string().trim().min(1, "A title is required.").max(180),
@@ -38,10 +45,15 @@ export const postSchema = z.object({
   coverMediaId: z.union([z.literal(""), z.uuid()]),
   thumbnailMediaId: z.union([z.literal(""), z.uuid()]),
   publishedAt: z.union([z.literal(""), z.iso.datetime({ local: true })]),
+  // Agent API only: a string sets/replaces the password, null clears it.
+  // Optional so existing post payloads keep working.
+  password: z.union([postPasswordValueSchema, z.null()]).optional(),
 });
 
 export const postEditorSnapshotSchema = postSchema.extend({
   version: z.number().int().nonnegative(),
+  passwordProtected: z.boolean(),
+  password: postPasswordValueSchema,
 });
 
 export const albumEditorItemSchema = z.object({

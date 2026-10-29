@@ -21,13 +21,13 @@ export default async function UpdatesPage() {
       {posts.length ? (
         <ol className="post-index">
           {posts.map((post, index) => {
-            const thumbnail = resolvePostThumbnail(post);
+            const thumbnail = post.isPasswordProtected ? null : resolvePostThumbnail(post);
             return (
               <li key={post.id}>
                 <span className="post-index__number">{String(index + 1).padStart(2, "0")}</span>
-                <div><time>{formatDate(post.publishedAt)}</time><h2><Link href={`/updates/${post.slug}`}>{post.title}</Link></h2><p>{post.excerpt || "Open this update to read more."}</p></div>
+                <div><time>{formatDate(post.publishedAt)}</time><h2><Link href={`/updates/${post.slug}`}>{post.title}</Link></h2>{post.isPasswordProtected ? <p>🔒 Password protected — enter the password to read this update.</p> : <p>{post.excerpt || "Open this update to read more."}</p>}</div>
                 <Link className={`post-index__thumbnail${thumbnail ? "" : " is-empty"}`} href={`/updates/${post.slug}`} aria-label={`Read ${post.title}`}>
-                  {thumbnail ? <Image src={thumbnail.url} alt={thumbnail.alt} width={380} height={214} sizes="(max-width: 760px) 280px, 190px" /> : <span aria-hidden="true">TXT</span>}
+                  {thumbnail ? <Image src={thumbnail.url} alt={thumbnail.alt} width={380} height={214} sizes="(max-width: 760px) 280px, 190px" /> : <span aria-hidden="true">{post.isPasswordProtected ? "🔒" : "TXT"}</span>}
                 </Link>
               </li>
             );

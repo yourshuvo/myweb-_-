@@ -5,6 +5,15 @@ import { mediaAssets, postMedia, posts } from "@/db/schema";
 import { agentJson, denyUnlessAgent, firstValidationError } from "@/lib/agent/auth";
 import { agentCreatePostSchema, draftPublishedParam, paginationSchema, parseStatusParam } from "@/lib/agent/agent-schemas";
 import { extractHackClubMediaUrls } from "@/lib/markdown";
+import { hashPostPassword } from "@/lib/post-password";
+
+type PostRow = typeof posts.$inferSelect;
+
+/** Never expose the password hash through the agent API. */
+function agentPost(row: PostRow) {
+  const { passwordHash, ...rest } = row;
+  return { ...rest, isPasswordProtected: Boolean(passwordHash) };
+}
 
 export const runtime = "nodejs";
 
@@ -53,7 +62,7 @@ export async function GET(request: Request) {
       .orderBy(desc(posts.updatedAt))
       .limit(pagination.data.limit)
       .offset(pagination.data.offset);
-    return agentJson({ posts: rows });
+    return agentJson({ posts: rows.map(agentPost) });
   } catch (error) {
     console.error("[agent/v1/posts] list failed", {
       error: error instanceof Error ? error.message : String(error),
@@ -84,6 +93,7 @@ export async function POST(request: Request) {
   const parsed = agentCreatePostSchema.safeParse(payload);
   if (!parsed.success) return agentJson({ error: firstValidationError(parsed.error) }, { status: 400 });
   const data = parsed.data;
+  const passwordHash = data.password ? hashPostPassword(data.password) : null;
   const now = new Date();
   const publishedAt = data.status === "published" ? (data.publishedAt ? new Date(data.publishedAt) : now) : null;
   try {
@@ -97,6 +107,7 @@ export async function POST(request: Request) {
         status: data.status,
         coverMediaId: data.coverMediaId || null,
         thumbnailMediaId: data.thumbnailMediaId || null,
+        passwordHash,
         authorId: "agent-api",
         publishedAt,
         updatedAt: now,
@@ -105,7 +116,7 @@ export async function POST(request: Request) {
     if (!created) return agentJson({ error: "The post could not be created." }, { status: 500 });
     await relinkPostMedia(created.id, data.body);
     if (created.status === "published") revalidateTag("posts", { expire: 0 });
-    return agentJson({ post: created }, { status: 201 });
+    return agentJson({ post: agentPost(created) }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error && error.message.includes("posts_slug_unique")
       ? "That slug is already in use."

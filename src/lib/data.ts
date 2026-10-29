@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { unstable_cache } from "next/cache";
 import { connection } from "next/server";
@@ -49,6 +49,7 @@ export type PublicPost = {
   thumbnailMediaId: string | null;
   thumbnailUrl: string | null;
   thumbnailAltText: string | null;
+  isPasswordProtected: boolean;
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -144,6 +145,7 @@ async function queryPublishedPosts() {
       thumbnailMediaId: posts.thumbnailMediaId,
       thumbnailUrl: postThumbnailMedia.url,
       thumbnailAltText: postThumbnailMedia.altText,
+      isPasswordProtected: sql<boolean>`${posts.passwordHash} is not null`,
       publishedAt: posts.publishedAt,
       createdAt: posts.createdAt,
       updatedAt: posts.updatedAt,
@@ -181,6 +183,22 @@ export async function getPublishedPost(slug: string) {
 export async function getPublishedPostById(id: string) {
   const all = await getPublishedPosts();
   return all.find((post) => post.id === id) ?? null;
+}
+
+/**
+ * Server-only: fetch a published post's password hash directly from the DB
+ * (never via the public cache payload) for unlock verification. Returns null
+ * when the post is missing, unpublished, or not password protected.
+ */
+export async function getPostPasswordHashById(id: string): Promise<string | null> {
+  const db = getDb();
+  if (!db) return null;
+  const [row] = await db
+    .select({ passwordHash: posts.passwordHash })
+    .from(posts)
+    .where(and(eq(posts.id, id), eq(posts.status, "published")))
+    .limit(1);
+  return row?.passwordHash ?? null;
 }
 
 const getCachedPhotoLog = unstable_cache(

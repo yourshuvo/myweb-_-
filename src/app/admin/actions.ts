@@ -11,6 +11,7 @@ import { nextCopySlug, type PostEditorSnapshot, type PostSaveResult } from "@/li
 import { requireAdmin } from "@/lib/auth/server";
 import { extractHackClubMediaUrls } from "@/lib/markdown";
 import { normalizeSpotifyPlaylistUrl } from "@/lib/spotify";
+import { hashPostPassword } from "@/lib/post-password";
 import { getTmdbMovie, TmdbRequestError } from "@/lib/tmdb";
 import { albumEditorSchema, anonymousMessageIdSchema, guestbookEntryIdSchema, mediaUrlSchema, movieRecommendationIdSchema, movieRecommendationSchema, postCommentIdSchema, postEditorSnapshotSchema, profileSchema } from "@/lib/validation";
 
@@ -96,6 +97,30 @@ async function persistPost(input: PostEditorSnapshot, mode: "autosave" | "explic
       let row: { id: string; version: number; status: "draft" | "published" } | undefined;
       const publishedAt = data.status === "published" ? (data.publishedAt ? new Date(data.publishedAt) : now) : null;
 
+      // Resolve the password hash outside the row writes below.
+      // protected=false clears it; a non-empty password replaces it; an
+      // empty password keeps the existing hash. A protected post with no
+      // existing hash and no new password cannot be saved.
+      let passwordHash: string | null = null;
+      let existingPasswordHash: string | null = null;
+      if (data.id) {
+        const [existingForPassword] = await tx
+          .select({ passwordHash: posts.passwordHash })
+          .from(posts)
+          .where(eq(posts.id, data.id))
+          .limit(1);
+        existingPasswordHash = existingForPassword?.passwordHash ?? null;
+      }
+      if (!data.passwordProtected) {
+        passwordHash = null;
+      } else if (data.password) {
+        passwordHash = hashPostPassword(data.password);
+      } else if (existingPasswordHash) {
+        passwordHash = existingPasswordHash;
+      } else {
+        return { passwordError: true as const };
+      }
+
       if (data.id) {
         const [existing] = await tx
           .select({ version: posts.version, status: posts.status })
@@ -114,6 +139,7 @@ async function persistPost(input: PostEditorSnapshot, mode: "autosave" | "explic
             status: data.status,
             coverMediaId: data.coverMediaId || null,
             thumbnailMediaId: data.thumbnailMediaId || null,
+            passwordHash,
             publishedAt,
             updatedAt: now,
             version: sql`${posts.version} + 1`,
@@ -131,6 +157,7 @@ async function persistPost(input: PostEditorSnapshot, mode: "autosave" | "explic
             status: data.status,
             coverMediaId: data.coverMediaId || null,
             thumbnailMediaId: data.thumbnailMediaId || null,
+            passwordHash,
             authorId: user.id,
             publishedAt,
             updatedAt: now,
@@ -150,6 +177,9 @@ async function persistPost(input: PostEditorSnapshot, mode: "autosave" | "explic
       return row;
     });
 
+    if (saved && "passwordError" in saved) {
+      return { status: "error", message: "Set a password for this update, or turn off password protection.", field: "password" };
+    }
     if (!saved) return data.id ? latestPostConflict(data.id) : { status: "error", message: "The post could not be saved." };
     if (previousStatus === "published" || saved.status === "published") updateTag("posts");
     return {
